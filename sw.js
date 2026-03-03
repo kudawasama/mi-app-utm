@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open('utm-finanzas-v1').then(cache => {
+        caches.open('utm-finanzas-v2').then(cache => {
             // Allow them down softly if they are not cached, it just falls back to network
             return cache.addAll([
                 './index.html',
@@ -11,6 +11,21 @@ self.addEventListener('install', event => {
         })
     );
     self.skipWaiting();
+});
+
+// Limpieza de caches antiguos
+self.addEventListener('activate', event => {
+    event.waitUntil(
+        caches.keys().then(cacheNames => {
+            return Promise.all(
+                cacheNames.map(cache => {
+                    if (cache !== 'utm-finanzas-v2') {
+                        return caches.delete(cache);
+                    }
+                })
+            );
+        })
+    );
 });
 
 self.addEventListener('fetch', event => {

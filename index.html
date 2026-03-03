@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Dashboard Personal de Finanzas y Control">
     <meta name="theme-color" content="#0f172a">
-    
+
     <!-- Manifiesto para PWA: Permite que la app se instale en móviles -->
     <link rel="manifest" href="manifest.json">
     <title>Mi Panel Financiero</title>
@@ -15,13 +15,13 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
-    
+
     <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="index.css">
-    
+
     <!-- Librerías Externas: Chart.js para los gráficos dinámicos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
-    
+
     <!-- Lógica de la aplicación -->
     <script src="app.js" defer></script>
 </head>
@@ -41,7 +41,7 @@
                     </select>
                 </div>
             </div>
-            
+
             <!-- Botones de Acción Global -->
             <div class="header-actions">
                 <button class="btn-action" id="btn-quick-add" title="Registro Rápido (Móvil)">⚡</button>
@@ -64,7 +64,7 @@
         <!-- CONTENIDO: PESTAÑA DASHBOARD (Resumen Visual) -->
         <div id="tab-dashboard" class="tab-content active">
             <div class="dashboard-grid">
-                
+
                 <!-- Widget: Indicadores Económicos (UTM, UF, Dólar) -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
@@ -154,7 +154,7 @@
         <!-- CONTENIDO: PESTAÑA FINANZAS (Gestión de Registros) -->
         <div id="tab-finanzas" class="tab-content">
             <div class="finanzas-container">
-                
+
                 <!-- Sección: Ingresos -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
@@ -306,7 +306,7 @@
                 <!-- Campos ocultos para saber qué estamos editando -->
                 <input type="hidden" id="edit-id">
                 <input type="hidden" id="edit-type">
-                
+
                 <div class="add-form" style="grid-template-columns: 1fr;">
                     <div class="input-group">
                         <label class="lbl">Fecha de Registro</label>
@@ -350,6 +350,12 @@
     <footer>
         <p>Dashboard de Uso Personal. Privacidad 100% Garantizada. <br> Filtros mensuales activos.</p>
     </footer>
+
+    <!-- Elemento Pokémon (Easter Egg) -->
+    <div id="pokemon-companion" class="pokemon-walker">
+        <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/25.gif"
+            alt="Pikachu">
+    </div>
 
 </body>
 

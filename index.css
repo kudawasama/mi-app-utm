@@ -301,3 +301,44 @@ td {
         padding: 0.5rem 0.8rem;
     }
 }
+
+/* --- ANIMACIÓN POKÉMON (Easter Egg) --- */
+.pokemon-walker {
+    position: fixed;
+    bottom: 20px;
+    left: -100px;
+    z-index: 9999;
+    pointer-events: none;
+    animation: walk-across 25s linear infinite;
+}
+
+.pokemon-walker img {
+    height: 50px;
+    width: auto;
+    filter: drop-shadow(0 0 10px rgba(255, 235, 59, 0.4));
+}
+
+@keyframes walk-across {
+    0% {
+        left: -100px;
+        transform: scaleX(1);
+    }
+
+    45% {
+        transform: scaleX(1);
+    }
+
+    50% {
+        left: 110%;
+        transform: scaleX(-1);
+    }
+
+    95% {
+        transform: scaleX(-1);
+    }
+
+    100% {
+        left: -100px;
+        transform: scaleX(1);
+    }
+}

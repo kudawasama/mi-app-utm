@@ -287,6 +287,10 @@ body {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
+.b-card.interactive:active {
+    transform: scale(0.98);
+}
+
 .b-card.interactive .arrow-detail {
     opacity: 0.3;
     transition: opacity 0.2s;

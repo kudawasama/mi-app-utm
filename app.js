@@ -698,7 +698,7 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsTitle.textContent = title;
         detailsPeriodInfo.textContent = `Periodo: ${currentPeriod === 'all' ? 'Historial Completo' : currentPeriod}`;
         detailsTableHead.innerHTML = headHTML;
-        detailsTableBody.innerHTML = itemsToShow.length ? '' : '<tr><td colspan="4" style="text-align:center; padding: 2rem;">No hay registros en este periodo</td></tr>';
+        detailsTableBody.innerHTML = itemsToShow.length ? '' : '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: var(--text-muted);">No hay registros en este periodo</td></tr>';
 
         itemsToShow.slice().reverse().forEach(item => {
             const tr = document.createElement('tr');
@@ -713,12 +713,13 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsModal.classList.add('active');
     };
 
-    // Agregar eventos a las tarjetas interactivas
-    document.querySelectorAll('.b-card.interactive').forEach(card => {
-        card.addEventListener('click', () => {
-            const type = card.dataset.detail;
+    // Usar delegación de eventos para las tarjetas interactivas (más robusto)
+    document.addEventListener('click', (e) => {
+        const interactiveCard = e.target.closest('.b-card.interactive');
+        if (interactiveCard) {
+            const type = interactiveCard.dataset.detail;
             openDetailsModal(type);
-        });
+        }
     });
 
     // --- SISTEMA DE RESPALDO (EXPORTAR / IMPORTAR) ---
@@ -772,9 +773,16 @@ document.addEventListener('DOMContentLoaded', () => {
         // Configurar listener para el selector global de periodos
         if (periodSelector) {
             periodSelector.addEventListener('change', (e) => {
+                console.log("Cambio de periodo detectado:", e.target.value);
                 currentPeriod = e.target.value;
+
+                // Actualizar todo inmediatamente
                 updatePeriodDisplayText();
                 renderAll();
+
+                // Pequeña vibración visual para confirmar el cambio
+                periodSelector.style.transform = "scale(1.05)";
+                setTimeout(() => periodSelector.style.transform = "scale(1)", 150);
             });
         }
 

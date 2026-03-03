@@ -1,23 +1,33 @@
+/**
+ * LÓGICA PRINCIPAL DE LA APLICACIÓN DE CONTROL FINANCIERO
+ * --------------------------------------------------------
+ * Este archivo gestiona los cálculos, el almacenamiento local,
+ * los gráficos y la conexión con la API de indicadores.
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
-    // --- PWA REGISTRY ---
+
+    // --- REGISTRO DEL SERVICE WORKER (Para soporte PWA/Offline) ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').catch(() => { });
     }
 
-    // --- VARIABLES Y STORAGE ---
-    const API_URL_BASE = 'https://mindicador.cl/api';
-    let allUtmData = [];
-    let utmChart = null;
-    let categoryChart = null;
+    // --- VARIABLES GLOBALES Y CONFIGURACIÓN ---
+    const API_URL_BASE = 'https://mindicador.cl/api'; // Fuente de datos económicos
+    let allUtmData = []; // Guardará el historial de la UTM
+    let utmChart = null; // Instancia del gráfico de UTM
+    let categoryChart = null; // Instancia del gráfico circular
 
+    // Cargar datos desde la memoria del navegador (localStorage)
+    // Si no existen, se inicializan como listas vacías []
     let incomes = JSON.parse(localStorage.getItem('myIncomes')) || [];
     let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
     let recurrents = JSON.parse(localStorage.getItem('myRecurrents')) || [];
 
-    // Periodo Inicial (Mes Actual)
-    let currentPeriod = 'all'; // Default a 'all' para asegurar visibilidad inicial
+    // Periodo Inicial: 'all' muestra todos los registros por defecto
+    let currentPeriod = 'all';
 
-    // --- ELEMENTOS DOM ---
+    // --- ELEMENTOS DEL DOM (Vínculos con HTML) ---
     const utmValueEl = document.getElementById('utm-value');
     const ufValueEl = document.getElementById('uf-value');
     const dolarValueEl = document.getElementById('dolar-value');
@@ -40,33 +50,52 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModal = document.getElementById('edit-modal');
     const formEdit = document.getElementById('form-edit');
 
-    // --- UTILIDADES ---
+    // --- FUNCIONES DE UTILIDAD ---
+
+    /**
+     * Formatea un número como moneda chilena (Puntos de miles, sin decimales)
+     */
     const formattedCurrency = (val) => new Intl.NumberFormat('es-CL').format(Math.round(val));
 
+    /**
+     * Obtiene la fecha de hoy en formato ISO (YYYY-MM-DD) para los inputs de fecha
+     */
     const getTodayString = () => new Date().toISOString().split('T')[0];
 
+    /**
+     * Convierte una fecha ISO (Año-Mes-Día) al formato visual chileno (Día/Mes/Año)
+     */
     const formatToCLDate = (dateISO) => {
         if (!dateISO) return '-';
-        if (dateISO.includes('/')) return dateISO; // Ya está formateada
+        if (dateISO.includes('/')) return dateISO;
         const [y, m, d] = dateISO.split('-');
         return `${d}/${m}/${y}`;
     };
 
+    /**
+     * Convierte una fecha chilena (D/M/Y) de vuelta a ISO (Y-M-D) para poder editarla en un input de fecha
+     */
     const parseToISODate = (dateCL) => {
         if (!dateCL || !dateCL.includes('/')) return getTodayString();
         const [d, m, y] = dateCL.split('/');
         return `${y}-${m}-${d}`;
     };
 
+    /**
+     * Extrae el Periodo (Año-Mes) de una fecha chilena para el filtrado mensual
+     */
     const getPeriodFromDate = (dateCL) => {
         try {
             if (!dateCL || typeof dateCL !== 'string' || !dateCL.includes('/')) return 'unknown';
             const parts = dateCL.split('/');
             if (parts.length < 3) return 'unknown';
-            return `${parts[2]}-${parts[1]}`;
+            return `${parts[2]}-${parts[1]}`; // Retorna YYYY-MM
         } catch (e) { return 'unknown'; }
     };
 
+    /**
+     * Realiza una animación numérica (contador) en un elemento de texto
+     */
     const animateValue = (el, start, end, duration) => {
         if (!el || isNaN(start) || isNaN(end)) return;
         let startTimestamp = null;
@@ -81,11 +110,16 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- LÓGICA DE PERIODOS (FILTROS) ---
+
+    /**
+     * Escanea todos los registros y crea las opciones del selector de meses
+     */
     const setupPeriodSelector = () => {
         try {
             const periods = new Set();
-            periods.add(new Date().toISOString().slice(0, 7)); // Mes actual
+            periods.add(new Date().toISOString().slice(0, 7)); // Siempre incluir mes actual
 
+            // Buscar meses únicos en los datos
             [...incomes, ...expenses].forEach(item => {
                 if (item && item.date) {
                     const p = getPeriodFromDate(item.date);
@@ -93,8 +127,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
+            // Ordenar de más reciente a más antiguo
             const sortedPeriods = Array.from(periods).sort().reverse();
-            periodSelector.innerHTML = '<option value="all">Ver Todos</option>';
+            periodSelector.innerHTML = '<option value="all">Ver Todos los Periodos</option>';
 
             sortedPeriods.forEach(p => {
                 const opt = document.createElement('option');
@@ -108,13 +143,16 @@ document.addEventListener('DOMContentLoaded', () => {
             periodSelector.value = currentPeriod;
             updatePeriodDisplayText();
         } catch (err) {
-            console.error("Error in setupPeriodSelector:", err);
+            console.error("Error al configurar selector de periodos:", err);
         }
     };
 
+    /**
+     * Actualiza el texto de cabecera que indica qué periodo estamos viendo
+     */
     const updatePeriodDisplayText = () => {
         if (currentPeriod === 'all') {
-            periodDisplay.textContent = "Todos los datos";
+            periodDisplay.textContent = "Mostrando Historial Completo";
         } else {
             const [y, m] = currentPeriod.split('-');
             const displayDate = new Date(parseInt(y), parseInt(m) - 1, 2);
@@ -122,12 +160,17 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- GASTOS RECURRENTES ---
+    // --- GASTOS RECURRENTES (Automatización) ---
+
+    /**
+     * Revisa si ha cambiado el mes y, en tal caso, genera los gastos fijos programados
+     */
     const processRecurrents = () => {
         const now = new Date();
         const thisMonthKey = now.toISOString().slice(0, 7);
         const lastProcessed = localStorage.getItem('lastRecurrentProcessed');
 
+        // Si el mes actual no ha sido procesado aún
         if (lastProcessed !== thisMonthKey) {
             recurrents.forEach(rec => {
                 const day = String(rec.day).padStart(2, '0');
@@ -138,7 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     category: rec.category,
                     desc: `[AUTO] ${rec.desc}`,
                     amount: rec.amount,
-                    notes: 'Generado automáticamente',
+                    notes: 'Gasto fijo mensual generado automáticamente',
                     paid: false
                 };
                 expenses.push(newExpense);
@@ -148,10 +191,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // --- INDICADORES ---
+    // --- CONEXIÓN CON API MINDICADOR.CL ---
+
+    /**
+     * Obtiene los valores de UF, Dólar y UTM desde la API externa
+     */
     const fetchIndicators = async () => {
         try {
-            // Intentamos el endpoint principal primero
+            // Consulta general (obtener UF y Dólar de hoy)
             const res = await fetch(API_URL_BASE);
             const data = await res.json();
 
@@ -164,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 dolarValueEl.innerText = formattedCurrency(data.dolar.valor);
             }
 
-            // UTM siempre desde su propio endpoint para asegurar la serie histórica
+            // Consulta histórica de UTM para el selector y el gráfico
             const utmRes = await fetch(`${API_URL_BASE}/utm`);
             const utmData = await utmRes.json();
             if (utmData.serie) {
@@ -173,22 +220,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 updateUtmDisplay(0);
             }
         } catch (e) {
-            console.error("API Error - Fallback individual...", e);
-            // Plan B: Fetch individual sin paraámetros extra
+            console.error("Error de API - Usando fallback...", e);
+            // Si falla la consulta general, intentamos consultas individuales simples
             try {
                 const rUf = await fetch(`${API_URL_BASE}/uf`);
                 const dUf = await rUf.json();
                 ufValueEl.innerText = formattedCurrency(dUf.serie[0].valor);
             } catch (err) { }
-
-            try {
-                const rDol = await fetch(`${API_URL_BASE}/dolar`);
-                const dDol = await rDol.json();
-                dolarValueEl.innerText = formattedCurrency(dDol.serie[0].valor);
-            } catch (err) { }
         }
     };
 
+    /**
+     * Llena el dropdown con los últimos 12 meses de UTM históricos
+     */
     const populateUtmSelector = (series) => {
         monthSelector.innerHTML = '';
         series.slice(0, 12).forEach((d, i) => {
@@ -201,6 +245,9 @@ document.addEventListener('DOMContentLoaded', () => {
         monthSelector.addEventListener('change', (e) => updateUtmDisplay(parseInt(e.target.value)));
     };
 
+    /**
+     * Actualiza los valores de UTM y hace los cálculos derivados (ej: 4.5 UTM para multas/tramites)
+     */
     const updateUtmDisplay = (index) => {
         const curr = allUtmData[index];
         if (!curr) return;
@@ -210,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
         animateValue(utmValueEl, 0, val, 600);
         animateValue(calc45El, 0, val * 4.5, 700);
 
+        // Calcular tendencia comparando con el mes anterior
         if (allUtmData[index + 1]) {
             const diff = val - allUtmData[index + 1].valor;
             trendEl.innerText = (diff > 0 ? '↑' : '↓') + ' $' + formattedCurrency(Math.abs(diff));
@@ -218,7 +266,11 @@ document.addEventListener('DOMContentLoaded', () => {
         renderUtmChart(allUtmData.slice(0, 8).reverse());
     };
 
-    // --- GRÁFICOS ---
+    // --- GENERACIÓN DE GRÁFICOS (Chart.js) ---
+
+    /**
+     * Dibuja la línea de tiempo de la UTM en el Dashboard
+     */
     const renderUtmChart = (data) => {
         const canvas = document.getElementById('utmChart');
         if (!canvas) return;
@@ -228,17 +280,26 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'line',
             data: {
                 labels: data.map(d => new Date(d.fecha).toLocaleDateString('es-CL', { month: 'short' })),
-                datasets: [{ data: data.map(d => d.valor), borderColor: '#00d2ff', backgroundColor: 'rgba(0,210,255,0.05)', fill: true, tension: 0.4, pointRadius: 2 }]
+                datasets: [{
+                    data: data.map(d => d.valor),
+                    borderColor: '#00d2ff',
+                    backgroundColor: 'rgba(0,210,255,0.05)',
+                    fill: true, tension: 0.4, pointRadius: 2
+                }]
             },
             options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { display: false }, y: { display: false } } }
         });
     };
 
+    /**
+     * Dibuja el gráfico circular de gastos por categoría
+     */
     const renderCategoryChart = (filteredExpenses) => {
         const canvas = document.getElementById('categoryChart');
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
 
+        // Sumar montos por categoría
         const groups = {};
         filteredExpenses.forEach(e => {
             if (e.category) groups[e.category] = (groups[e.category] || 0) + Number(e.amount);
@@ -254,24 +315,33 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'doughnut',
             data: {
                 labels,
-                datasets: [{ data: values, backgroundColor: ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5'], borderWidth: 0 }]
+                datasets: [{
+                    data: values,
+                    backgroundColor: ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5'],
+                    borderWidth: 0
+                }]
             },
             options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
         });
     };
 
-    // --- RENDERING ---
+    // --- RENDERIZADO GENERAL (Tablas y Resúmenes) ---
+
+    /**
+     * Dibuja toda la información visual de la app basándose en los filtros actuales
+     */
     const renderAll = () => {
-        // Filtrado por periodo
+        // Filtrar datos según el periodo seleccionado (all o YYYY-MM)
         const filterFn = (item) => currentPeriod === 'all' || getPeriodFromDate(item.date) === currentPeriod;
         const filteredIncomes = incomes.filter(filterFn);
         const filteredExpenses = expenses.filter(filterFn);
 
-        // Tablas
+        // Seleccionar cuerpos de tablas
         const tbodyInc = document.querySelector('#table-incomes tbody');
         const tbodyExp = document.querySelector('#table-expenses tbody');
         const tbodyRec = document.querySelector('#table-recurrents tbody');
 
+        // Renderizar Tabla de Ingresos
         tbodyInc.innerHTML = filteredIncomes.length ? '' : '<tr><td colspan="4" style="text-align:center">No hay registros</td></tr>';
         filteredIncomes.slice().reverse().forEach(inc => {
             try {
@@ -285,9 +355,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </td>`;
                 tbodyInc.appendChild(tr);
-            } catch (e) { console.error("Err rendering row", e); }
+            } catch (e) { console.error("Error al renderizar fila de ingreso", e); }
         });
 
+        // Renderizar Tabla de Gastos
         tbodyExp.innerHTML = filteredExpenses.length ? '' : '<tr><td colspan="7" style="text-align:center">No hay registros</td></tr>';
         filteredExpenses.slice().reverse().forEach(exp => {
             try {
@@ -301,13 +372,13 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button class="action-btn edit-trigger" data-id="${exp.id}" data-type="expense" title="Editar">✎</button>
                             <button class="action-btn delete-trigger" data-id="${exp.id}" data-type="expense" title="Eliminar">✕</button>
                         </div>
-                    </td>
-                `;
+                    </td>`;
                 tbodyExp.appendChild(tr);
-            } catch (e) { console.error("Err rendering row", e); }
+            } catch (e) { console.error("Error al renderizar fila de gasto", e); }
         });
 
-        tbodyRec.innerHTML = recurrents.length ? '' : '<tr><td colspan="5" style="text-align:center">Sin gastos recurrentes</td></tr>';
+        // Renderizar Tabla de Recurrentes
+        tbodyRec.innerHTML = recurrents.length ? '' : '<tr><td colspan="5" style="text-align:center">Sin gastos recurrentes programados</td></tr>';
         recurrents.forEach(rec => {
             try {
                 const tr = document.createElement('tr');
@@ -316,7 +387,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (e) { }
         });
 
-        // Dashboard Summary
+        // Calcular Resumen de Totales
         const tInc = filteredIncomes.reduce((a, b) => a + Number(b.amount), 0);
         const tExp = filteredExpenses.reduce((a, b) => a + Number(b.amount), 0);
         const tPend = filteredExpenses.filter(e => !e.paid).reduce((a, b) => a + Number(b.amount), 0);
@@ -326,12 +397,17 @@ document.addEventListener('DOMContentLoaded', () => {
         totalPendingEl.innerText = '$' + formattedCurrency(tPend);
         netBalanceEl.innerText = '$' + formattedCurrency(tInc - tExp);
 
+        // Estilo visual del balance neto (Rojo si es negativo)
         netContainer.style.background = (tInc - tExp) < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';
 
         renderCategoryChart(filteredExpenses);
     };
 
-    // --- LÓGICA DE EDICIÓN ---
+    // --- LÓGICA DE EDICIÓN DE REGISTROS ---
+
+    /**
+     * Abre el modal de edición cargando los datos del registro seleccionado
+     */
     const openEditModal = (id, type) => {
         let item;
         if (type === 'income') item = incomes.find(i => i.id === id);
@@ -339,6 +415,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!item) return;
 
+        // Cargar datos en el formulario del modal
         document.getElementById('edit-id').value = id;
         document.getElementById('edit-type').value = type;
         document.getElementById('edit-date').value = parseToISODate(item.date);
@@ -348,6 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const catGroup = document.getElementById('edit-category-group');
         const notesGroup = document.getElementById('edit-notes-group');
 
+        // Ajustar el modal según sea ingreso o gasto
         if (type === 'income') {
             catGroup.style.display = 'none';
             notesGroup.style.display = 'none';
@@ -363,6 +441,9 @@ document.addEventListener('DOMContentLoaded', () => {
         editModal.classList.add('active');
     };
 
+    /**
+     * Procesa el guardado de los cambios realizados en el modal
+     */
     formEdit.addEventListener('submit', (e) => {
         e.preventDefault();
         const id = document.getElementById('edit-id').value;
@@ -394,56 +475,91 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
     });
 
-    // --- EVENTOS ---
+    // --- GESTIÓN DE EVENTOS (Interacciones del Usuario) ---
+
+    // Añadir nuevo Ingreso
     document.getElementById('form-income').addEventListener('submit', (e) => {
         e.preventDefault();
         const date = document.getElementById('inc-date').value || getTodayString();
-        incomes.push({ id: Date.now().toString(), date: formatToCLDate(date), desc: document.getElementById('inc-desc').value, amount: Number(document.getElementById('inc-amount').value) });
+        incomes.push({
+            id: Date.now().toString(),
+            date: formatToCLDate(date),
+            desc: document.getElementById('inc-desc').value,
+            amount: Number(document.getElementById('inc-amount').value)
+        });
         localStorage.setItem('myIncomes', JSON.stringify(incomes));
         e.target.reset(); document.getElementById('inc-date').value = getTodayString();
         setupPeriodSelector(); renderAll();
     });
 
+    // Añadir nuevo Gasto
     document.getElementById('form-expense').addEventListener('submit', (e) => {
         e.preventDefault();
         const date = document.getElementById('exp-date').value || getTodayString();
-        expenses.push({ id: Date.now().toString(), date: formatToCLDate(date), category: document.getElementById('exp-category').value, desc: document.getElementById('exp-desc').value, amount: Number(document.getElementById('exp-amount').value), notes: document.getElementById('exp-notes').value, paid: false });
+        expenses.push({
+            id: Date.now().toString(),
+            date: formatToCLDate(date),
+            category: document.getElementById('exp-category').value,
+            desc: document.getElementById('exp-desc').value,
+            amount: Number(document.getElementById('exp-amount').value),
+            notes: document.getElementById('exp-notes').value,
+            paid: false
+        });
         localStorage.setItem('myExpenses', JSON.stringify(expenses));
         e.target.reset(); document.getElementById('exp-date').value = getTodayString();
         setupPeriodSelector(); renderAll();
     });
 
+    // Añadir Programación de Gasto Recurrente
     document.getElementById('form-recurrent').addEventListener('submit', (e) => {
         e.preventDefault();
-        recurrents.push({ id: Date.now().toString(), day: document.getElementById('rec-day').value, category: document.getElementById('rec-category').value, desc: document.getElementById('rec-desc').value, amount: Number(document.getElementById('rec-amount').value) });
+        recurrents.push({
+            id: Date.now().toString(),
+            day: document.getElementById('rec-day').value,
+            category: document.getElementById('rec-category').value,
+            desc: document.getElementById('rec-desc').value,
+            amount: Number(document.getElementById('rec-amount').value)
+        });
         localStorage.setItem('myRecurrents', JSON.stringify(recurrents));
         e.target.reset(); renderAll();
     });
 
+    // Manejo de clicks dinámicos (Borrar y Editar)
     document.addEventListener('click', (e) => {
+        // Al presionar botón de eliminar
         if (e.target.classList.contains('delete-trigger')) {
             const { id, type } = e.target.dataset;
-            if (type === 'income') incomes = incomes.filter(i => i.id !== id);
-            else if (type === 'expense') expenses = expenses.filter(ex => ex.id !== id);
-            else if (type === 'recurrent') recurrents = recurrents.filter(r => r.id !== id);
-            localStorage.setItem('myIncomes', JSON.stringify(incomes));
-            localStorage.setItem('myExpenses', JSON.stringify(expenses));
-            localStorage.setItem('myRecurrents', JSON.stringify(recurrents));
-            renderAll();
+            if (confirm("¿Seguro que deseas eliminar este registro?")) {
+                if (type === 'income') incomes = incomes.filter(i => i.id !== id);
+                else if (type === 'expense') expenses = expenses.filter(ex => ex.id !== id);
+                else if (type === 'recurrent') recurrents = recurrents.filter(r => r.id !== id);
+
+                localStorage.setItem('myIncomes', JSON.stringify(incomes));
+                localStorage.setItem('myExpenses', JSON.stringify(expenses));
+                localStorage.setItem('myRecurrents', JSON.stringify(recurrents));
+                renderAll();
+            }
         }
 
+        // Al presionar botón de editar
         if (e.target.classList.contains('edit-trigger')) {
             openEditModal(e.target.dataset.id, e.target.dataset.type);
         }
     });
 
+    // Cambio de estado de Pago (Checkboxes de gastos)
     document.addEventListener('change', (e) => {
         if (e.target.type === 'checkbox' && e.target.dataset.id) {
             const exp = expenses.find(x => x.id === e.target.dataset.id);
-            if (exp) { exp.paid = e.target.checked; localStorage.setItem('myExpenses', JSON.stringify(expenses)); renderAll(); }
+            if (exp) {
+                exp.paid = e.target.checked;
+                localStorage.setItem('myExpenses', JSON.stringify(expenses));
+                renderAll();
+            }
         }
     });
 
+    // Registro rápido (Relámpago ⚡)
     btnQuickAdd.addEventListener('click', () => quickModal.classList.add('active'));
 
     document.getElementById('form-quick').addEventListener('submit', (e) => {
@@ -452,7 +568,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const category = document.getElementById('quick-category').value;
         const desc = document.getElementById('quick-desc').value || 'Gasto Rápido';
 
-        expenses.push({ id: Date.now().toString(), date: formatToCLDate(getTodayString()), category, desc, amount, notes: 'Ingreso rápido móvil', paid: false });
+        expenses.push({
+            id: Date.now().toString(),
+            date: formatToCLDate(getTodayString()),
+            category,
+            desc,
+            amount,
+            notes: 'Ingreso rápido desde móvil',
+            paid: false
+        });
         localStorage.setItem('myExpenses', JSON.stringify(expenses));
 
         quickModal.classList.remove('active');
@@ -461,7 +585,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderAll();
     });
 
-    // --- TABS ---
+    // --- NAVEGACIÓN POR PESTAÑAS (TABS) ---
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -472,10 +596,14 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // --- EXPORT/IMPORT ---
+    // --- SISTEMA DE RESPALDO (EXPORTAR / IMPORTAR) ---
+
+    // Exportar Datos a JSON (Descarga o Sobrescritura)
     document.getElementById('btn-export').addEventListener('click', async () => {
         const data = { incomes, expenses, recurrents, version: '5.0' };
         const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+
+        // Intento de guardado directo si el navegador lo permite
         if ('showSaveFilePicker' in window) {
             try {
                 const handle = await window.showSaveFilePicker({ suggestedName: 'Respaldo_Control.json', types: [{ accept: { 'application/json': ['.json'] } }] });
@@ -483,9 +611,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 await writable.write(blob); await writable.close(); return;
             } catch (e) { }
         }
+
+        // Fallback: Descarga tradicional
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'Respaldo_Control.json'; a.click();
     });
 
+    // Importar Datos desde JSON
     document.getElementById('btn-import-trigger').addEventListener('click', () => importFileInput.click());
     importFileInput.addEventListener('change', (e) => {
         const reader = new FileReader();
@@ -499,19 +630,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('myIncomes', JSON.stringify(incomes));
                     localStorage.setItem('myExpenses', JSON.stringify(expenses));
                     localStorage.setItem('myRecurrents', JSON.stringify(recurrents));
-                    currentPeriod = 'all'; // Asegura visibilidad tras importar
+                    currentPeriod = 'all'; // Asegurar que los datos importados sean visibles
                     setupPeriodSelector(); renderAll(); alert("¡Datos importados con éxito!");
                 }
-            } catch (err) { alert("Archivo no válido"); }
+            } catch (err) { alert("El archivo seleccionado no es un respaldo válido."); }
         };
         reader.readAsText(e.target.files[0]);
     });
 
-    // --- INIT ---
+    // --- INICIALIZACIÓN (Arranque de la App) ---
     try {
-        document.getElementById('inc-date').value = getTodayString();
-        document.getElementById('exp-date').value = getTodayString();
+        // Poner la fecha de hoy por defecto en los formularios
+        if (document.getElementById('inc-date')) document.getElementById('inc-date').value = getTodayString();
+        if (document.getElementById('exp-date')) document.getElementById('exp-date').value = getTodayString();
 
+        // Configurar listener para el selector global de periodos
         if (periodSelector) {
             periodSelector.addEventListener('change', (e) => {
                 currentPeriod = e.target.value;
@@ -520,11 +653,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
 
-        processRecurrents();
-        setupPeriodSelector();
-        fetchIndicators();
-        renderAll();
+        // Ejecutar procesos iniciales
+        processRecurrents(); // Revisar si hay gastos automáticos que crear
+        setupPeriodSelector(); // Crear lista de meses según los datos
+        fetchIndicators(); // Pedir UF/Dólar/UTM a la API
+        renderAll(); // Dibujar tablas y gráficos
+
     } catch (err) {
-        console.error("Critical error in INIT:", err);
+        console.error("Error crítico durante el arranque:", err);
     }
 });

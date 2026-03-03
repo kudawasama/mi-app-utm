@@ -6,19 +6,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="description" content="Dashboard Personal de Finanzas y Control">
     <meta name="theme-color" content="#0f172a">
+    
+    <!-- Manifiesto para PWA: Permite que la app se instale en móviles -->
     <link rel="manifest" href="manifest.json">
     <title>Mi Panel Financiero</title>
-    <!-- Modern Fonts -->
+
+    <!-- Tipografía moderna desde Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    
+    <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="index.css">
-    <!-- Chart.js -->
+    
+    <!-- Librerías Externas: Chart.js para los gráficos dinámicos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    
+    <!-- Lógica de la aplicación -->
     <script src="app.js" defer></script>
 </head>
 
 <body>
+    <!-- Capa de animación de fondo -->
     <div class="background-animation"></div>
 
     <header class="main-header">
@@ -26,19 +35,23 @@
             <div class="brand">
                 <h1>Centro de Control</h1>
                 <div class="period-filter">
+                    <!-- Selector Global: Filtra Dashboard y Finanzas por mes -->
                     <select id="global-period-selector" class="glass-select-period">
                         <option value="all">Ver Todos</option>
                     </select>
                 </div>
             </div>
+            
+            <!-- Botones de Acción Global -->
             <div class="header-actions">
                 <button class="btn-action" id="btn-quick-add" title="Registro Rápido (Móvil)">⚡</button>
-                <button class="btn-action" id="btn-export" title="Respaldar">💾</button>
-                <button class="btn-action" id="btn-import-trigger" title="Cargar">📂</button>
+                <button class="btn-action" id="btn-export" title="Respaldar Datos">💾</button>
+                <button class="btn-action" id="btn-import-trigger" title="Cargar Respaldo">📂</button>
                 <input type="file" id="import-file" style="display:none" accept=".json">
             </div>
         </div>
 
+        <!-- Sistema de Navegación por Pestañas -->
         <nav class="tab-nav">
             <button class="tab-btn active" data-tab="tab-dashboard">📊 Dashboard</button>
             <button class="tab-btn" data-tab="tab-finanzas">💸 Finanzas</button>
@@ -48,10 +61,11 @@
 
     <main class="dashboard">
 
-        <!-- PESTAÑA DASHBOARD -->
+        <!-- CONTENIDO: PESTAÑA DASHBOARD (Resumen Visual) -->
         <div id="tab-dashboard" class="tab-content active">
             <div class="dashboard-grid">
-                <!-- Indicadores -->
+                
+                <!-- Widget: Indicadores Económicos (UTM, UF, Dólar) -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
                         <h3>Indicadores Económicos</h3>
@@ -62,7 +76,7 @@
 
                     <div class="indicators-grid">
                         <div class="indicator-card primary">
-                            <span class="lbl">UTM (Selecc.)</span>
+                            <span class="lbl">UTM (Histórica)</span>
                             <div class="val">
                                 <span class="currency-symbol">$</span>
                                 <span id="utm-value" class="skeleton-text">00.000</span>
@@ -71,7 +85,7 @@
                         </div>
 
                         <div class="indicator-card accent">
-                            <span class="lbl">4.5 UTM</span>
+                            <span class="lbl">4.5 UTM (Trámites)</span>
                             <div class="val">
                                 <span class="currency-symbol">$</span>
                                 <span id="calc-45" class="skeleton-text">000.000</span>
@@ -95,15 +109,16 @@
                         </div>
                     </div>
 
+                    <!-- Gráfico Lineal de UTM -->
                     <div class="chart-wrapper">
                         <canvas id="utmChart"></canvas>
                     </div>
                 </section>
 
-                <!-- Resumen y Gráfico Circular -->
+                <!-- Widget: Resumen de Saldos y Gráfico de Categorías -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
-                        <h3>Resumen <span id="current-period-display">Todos los datos</span></h3>
+                        <h3>Resumen Mensual</h3>
                     </div>
 
                     <div class="summary-visual-grid">
@@ -117,11 +132,12 @@
                                 <h4 id="total-expense">$0</h4>
                             </div>
                             <div class="b-card pending">
-                                <span>Pendiente</span>
+                                <span>Por Pagar</span>
                                 <h4 id="total-pending">$0</h4>
                             </div>
                         </div>
 
+                        <!-- Gráfico Circular de Gastos -->
                         <div class="category-chart-wrapper">
                             <canvas id="categoryChart"></canvas>
                         </div>
@@ -135,18 +151,20 @@
             </div>
         </div>
 
-        <!-- PESTAÑA FINANZAS -->
+        <!-- CONTENIDO: PESTAÑA FINANZAS (Gestión de Registros) -->
         <div id="tab-finanzas" class="tab-content">
             <div class="finanzas-container">
-                <!-- Ingresos -->
+                
+                <!-- Sección: Ingresos -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
-                        <h3>Mis Ingresos</h3>
+                        <h3>Gestión de Ingresos</h3>
                     </div>
 
+                    <!-- Formulario de Entrada -->
                     <form id="form-income" class="add-form">
                         <input type="date" id="inc-date" required>
-                        <input type="text" id="inc-desc" placeholder="Descripción" required>
+                        <input type="text" id="inc-desc" placeholder="Origen del dinero" required>
                         <input type="number" id="inc-amount" placeholder="Monto ($)" required min="0">
                         <button type="submit" class="btn btn-primary">Añadir</button>
                     </form>
@@ -166,12 +184,13 @@
                     </div>
                 </section>
 
-                <!-- Gastos -->
+                <!-- Sección: Gastos -->
                 <section class="widget glass-panel">
                     <div class="widget-header">
-                        <h3>Mis Gastos</h3>
+                        <h3>Gestión de Gastos</h3>
                     </div>
 
+                    <!-- Formulario de Entrada Detallado -->
                     <form id="form-expense" class="add-form grid-4">
                         <input type="date" id="exp-date" required>
                         <select id="exp-category" required class="glass-select">
@@ -183,9 +202,9 @@
                             <option value="Ocio">🎉 Ocio</option>
                             <option value="Otros">📦 Otros</option>
                         </select>
-                        <input type="text" id="exp-desc" placeholder="Descripción" required>
+                        <input type="text" id="exp-desc" placeholder="¿En qué gastaste?" required>
                         <input type="number" id="exp-amount" placeholder="Monto ($)" required min="0">
-                        <input type="text" id="exp-notes" placeholder="Notas">
+                        <input type="text" id="exp-notes" placeholder="Notas adicionales">
                         <button type="submit" class="btn btn-danger">Añadir</button>
                     </form>
 
@@ -209,12 +228,12 @@
             </div>
         </div>
 
-        <!-- PESTAÑA CONFIGURACIÓN (Recurrentes) -->
+        <!-- CONTENIDO: PESTAÑA CONFIGURACIÓN (Automatización) -->
         <div id="tab-config" class="tab-content">
             <section class="widget glass-panel">
                 <div class="widget-header">
                     <h3>Gastos Recurrentes (Fijos)</h3>
-                    <p class="subtitle">Se agregarán automáticamente al iniciar el mes.</p>
+                    <p class="subtitle">Se agregarán automáticamente al inicio de cada mes.</p>
                 </div>
 
                 <form id="form-recurrent" class="add-form">
@@ -225,7 +244,7 @@
                         <option value="Ocio">🎉 Ocio</option>
                         <option value="Otros">📦 Otros</option>
                     </select>
-                    <input type="text" id="rec-desc" placeholder="Ej: Netflix, Arriendo" required>
+                    <input type="text" id="rec-desc" placeholder="Ej: Netflix, Internet, Arriendo" required>
                     <input type="number" id="rec-amount" placeholder="Monto ($)" required>
                     <button type="submit" class="btn btn-secondary">Programar</button>
                 </form>
@@ -248,7 +267,7 @@
         </div>
     </main>
 
-    <!-- Modal Registro Rápido -->
+    <!-- MODAL: REGISTRO RÁPIDO (Optimizado para Celular) -->
     <div id="quick-add-modal" class="modal">
         <div class="modal-content glass-panel">
             <div class="modal-header">
@@ -275,7 +294,7 @@
         </div>
     </div>
 
-    <!-- Modal Edición -->
+    <!-- MODAL: EDICIÓN UNIVERSAL -->
     <div id="edit-modal" class="modal">
         <div class="modal-content glass-panel">
             <div class="modal-header">
@@ -284,11 +303,13 @@
                     onclick="document.getElementById('edit-modal').classList.remove('active')">×</button>
             </div>
             <form id="form-edit">
+                <!-- Campos ocultos para saber qué estamos editando -->
                 <input type="hidden" id="edit-id">
                 <input type="hidden" id="edit-type">
+                
                 <div class="add-form" style="grid-template-columns: 1fr;">
                     <div class="input-group">
-                        <label class="lbl">Fecha</label>
+                        <label class="lbl">Fecha de Registro</label>
                         <input type="date" id="edit-date" required style="width: 100%;">
                     </div>
                     <div id="edit-category-group" class="input-group">
@@ -312,7 +333,7 @@
                         <input type="number" id="edit-amount" required style="width: 100%;">
                     </div>
                     <div id="edit-notes-group" class="input-group">
-                        <label class="lbl">Notas</label>
+                        <label class="lbl">Notas / Comentarios</label>
                         <input type="text" id="edit-notes" style="width: 100%;">
                     </div>
                 </div>
@@ -325,8 +346,9 @@
         </div>
     </div>
 
+    <!-- PIE DE PÁGINA -->
     <footer>
-        <p>Dashboard de Uso Personal. <br> Filtros mensuales activos.</p>
+        <p>Dashboard de Uso Personal. Privacidad 100% Garantizada. <br> Filtros mensuales activos.</p>
     </footer>
 
 </body>

@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const trendEl = document.getElementById('trend-indicator');
     const monthSelector = document.getElementById('month-selector');
     const periodSelector = document.getElementById('global-period-selector');
-    const periodDisplay = document.getElementById('current-period-display');
+    const periodDisplay = document.getElementById('period-display-text');
 
     const totalIncomeEl = document.getElementById('total-income');
     const totalExpenseEl = document.getElementById('total-expense');
@@ -85,25 +85,49 @@ document.addEventListener('DOMContentLoaded', () => {
      * Extrae el Periodo (Año-Mes) de una fecha para el filtrado mensual.
      * Soporta formato chileno (D/M/Y) e ISO (Y-M-D).
      */
-    const getPeriodFromDate = (dateStr) => {
+    /**
+     * Extrae el Periodo (Año-Mes) de una fecha de forma ultra-robusta.
+     * Soporta DD/MM/YYYY, YYYY-MM-DD, timestamps y objetos Date.
+     */
+    const getPeriodFromDate = (dateInput) => {
         try {
-            if (!dateStr || typeof dateStr !== 'string') return 'unknown';
+            if (!dateInput) return 'unknown';
+            let dateStr = dateInput;
 
-            // Caso 1: Formato Chileno (DD/MM/YYYY)
-            if (dateStr.includes('/')) {
-                const parts = dateStr.split('/');
-                if (parts.length >= 3) return `${parts[2]}-${parts[1]}`;
+            if (typeof dateStr === 'number') {
+                const d = new Date(dateStr);
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             }
 
-            // Caso 2: Formato ISO (YYYY-MM-DD)
+            if (typeof dateStr !== 'string') return 'unknown';
+            dateStr = dateStr.trim();
+
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length >= 3) {
+                    const year = parts[2].length === 2 ? `20${parts[2]}` : parts[2];
+                    const month = parts[1].padStart(2, '0');
+                    return `${year}-${month}`;
+                }
+            }
+
             if (dateStr.includes('-')) {
                 const parts = dateStr.split('-');
-                if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+                if (parts.length >= 3) {
+                    if (parts[0].length === 4) return `${parts[0]}-${parts[1].padStart(2, '0')}`;
+                    if (parts[2].length === 4) return `${parts[2]}-${parts[1].padStart(2, '0')}`;
+                } else if (parts.length === 2) {
+                    return `${parts[0]}-${parts[1].padStart(2, '0')}`;
+                }
+            }
+
+            const d = new Date(dateStr);
+            if (!isNaN(d.getTime())) {
+                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
             }
 
             return 'unknown';
         } catch (e) {
-            console.error("Error al procesar periodo de fecha:", dateStr);
             return 'unknown';
         }
     };
@@ -166,6 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
      * Actualiza el texto de cabecera que indica qué periodo estamos viendo
      */
     const updatePeriodDisplayText = () => {
+        if (!periodDisplay) return;
         if (currentPeriod === 'all') {
             periodDisplay.textContent = "Mostrando Historial Completo";
         } else {
@@ -346,8 +371,15 @@ document.addEventListener('DOMContentLoaded', () => {
      * Dibuja toda la información visual de la app basándose en los filtros actuales
      */
     const renderAll = () => {
-        // Filtrar datos según el periodo seleccionado (all o YYYY-MM)
-        const filterFn = (item) => currentPeriod === 'all' || getPeriodFromDate(item.date) === currentPeriod;
+        console.log("Renderizando periodo:", currentPeriod);
+
+        // Filtro defensivo: Aseguramos que currentPeriod sea string y usamos getPeriodFromDate
+        const filterFn = (item) => {
+            if (currentPeriod === 'all') return true;
+            if (!item || !item.date) return false;
+            return getPeriodFromDate(item.date) === currentPeriod;
+        };
+
         const filteredIncomes = incomes.filter(filterFn);
         const filteredExpenses = expenses.filter(filterFn);
 

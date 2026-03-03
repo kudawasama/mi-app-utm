@@ -1,0 +1,32 @@
+# Walkthrough: Fase 2 - Control Total e Inteligencia
+
+He completado la implementación de la Fase 2 para tu centro de control personal. Los cambios van desde nuevos indicadores económicos hasta un sistema de exportación de datos 100% funcional.
+
+## Cambios Implementados
+
+### 1. Panel de Indicadores Económicos (UF y Dólar)
+- Ahora, además de la **UTM**, la app consulta automáticamente el valor del día de la **UF** y el **Dólar**.
+- Se visualizan en tarjetas separadas dentro del panel lateral de indicadores chilenos.
+
+### 2. Categorización de Gastos
+- Al agregar un gasto, ahora verás un nuevo selector de **Categorías** (🏠 Hogar, 💡 Servicios, 🛒 Alimentación, 🏥 Salud, 🚗 Transporte, 🎉 Ocio, 📦 Otros).
+- La tabla de gastos ahora incluye una columna que muestra esta clasificación.
+
+### 3. Gráfico de Gastos por Categoría
+- En el widget de "Resumen Financiero", he añadido un pequeño botón de gráfico (📊).
+- Al presionarlo, el resumen de montos se oculta y aparece un **Gráfico de Torta (Donut)** interactivo que muestra en qué estás gastando más dinero este mes.
+- Puedes volver al resumen de números con el botón "Volver al Resumen".
+
+### 4. Corrección del Sistema de Respaldo (Backup)
+- **Problema:** El botón de respaldar no descargaba nada.
+- **Solución:** Re-programé la función de exportación para generar un archivo [.json](file:///c:/Users/jose.cespedes/Documents/GitHub/AntiGravity/mi-app-utm/manifest.json) real que se descarga automáticamente en tu carpeta de descargas.
+- **Importación:** El botón de "Cargar Datos" ahora permite seleccionar ese archivo y restaurar toda tu información de inmediato.
+
+## Verificación de Funcionalidad
+- [x] Los indicadores UF y Dólar muestran valores actualizados.
+- [x] El formulario de gastos obliga a seleccionar una categoría.
+- [x] El botón "Respaldar Datos" genera y descarga un archivo `Respaldo_Finanzas_YYYY-MM-DD.json`.
+- [x] El gráfico de categorías se genera correctamente basado en los gastos ingresados.
+
+---
+*¡Tu app ahora es una herramienta de finanzas personales mucho más potente! Prueba los nuevos botones y indicadores.*

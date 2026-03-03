@@ -1,0 +1,30 @@
+# Walkthrough: Correcciones en Panel Financiero
+
+## Resumen de Cambios
+
+Se han aplicado ajustes sobre la aplicación local basados en los problemas reportados:
+
+### 1. Fecha Automática Segura (JavaScript)
+- **Problema:** El uso de `valueAsDate` causaba comportamientos erróneos o dejaba los campos vacíos en ciertos navegadores o computadoras.
+- **Solución:** Se implementó una función manual [getTodayString()](file:///c:/Users/jose.cespedes/Documents/GitHub/AntiGravity/mi-app-utm/app.js#164-171) que construye la fecha con el formato exacto `YYYY-MM-DD` que exigen los navegadores para el tipo `<input type="date">`. 
+- **Validación Extra:** Además, se agregó una capa de seguridad: Si al presionar el botón de "+ Gasto" o "+ Ingreso" el usuario mágicamente borró la fecha y está vacía, el sistema la rellenará automáticamente con la fecha de hoy para evitar que se guarde un registro en blanco.
+
+### 2. Cuadratura del Formulario (CSS)
+- **Problema:** Los inputs (descripción, monto, comentarios) se amontonaban o se salían de proporción de la tabla debido al esquema "flex" en pantallas pequeñas a medianas.
+- **Solución:** Se cambió la estructura de la clase `.add-form` a un `CSS Grid`.
+  ```css
+  .add-form {
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 0.8rem; 
+  }
+  ```
+- **Resultado:** Ahora cada cuadro de texto tiene un tamaño base y crece de forma simétrica a lo largo de la pantalla, dejando de verse "descuadrado".
+
+### 3. Alineación del Checkbox de Pago (CSS)
+- Dentro de la tabla de gastos `table-expenses`, se aplicó centrado forzado mediante `text-align: center;` para el interruptor visual de "Pagado/Pendiente", impidiendo que choque u opaque la fecha y descripción de tus propios movimientos.
+
+## Validación
+- [x] Abriendo la aplicación local, todos los formularios muestran el día de hoy antes del input del usuario.
+- [x] Test de guardado exitoso y formato limpio en las tablas.
+- [x] La interfaz responde correctamente y el Grid se apila simétricamente al achicar la ventana.

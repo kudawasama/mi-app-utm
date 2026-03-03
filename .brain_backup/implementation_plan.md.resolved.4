@@ -1,0 +1,32 @@
+# Plan de Implementación: Centro de Control Personal
+
+## Fase 1: Corrección de Fechas y Formulario
+Asegurar que la fecha actual se asigne correctamente y mejorar el diseño visual de los formularios.
+
+## Fase 2: Indicadores Chilenos y Control Avanzado
+Integración de UF, Dólar y categorización de gastos con gráficos.
+
+## Fase 3: Rediseño por Pestañas y Estabilización
+Separar la interfaz en "Dashboard" y "Finanzas" para una mejor experiencia de usuario.
+
+## Fase 4: Inteligencia, Filtros y Automatización
+El objetivo es segmentar la información por mes y automatizar la creación de gastos fijos.
+
+### User Review Required
+> [!WARNING]
+> **Privacidad y Limitaciones Técnicas**: Los navegadores web (PWA) no tienen permiso para leer las transacciones de otras apps (como Apple Pay o Google Pay) por seguridad. 
+> **Propuesta**: Implementaremos un botón de "Ingreso Rápido" en el Dashboard para agilizar el registro manual tras un pago.
+
+### Cambios Propuestos
+
+#### Interfaz de Usuario (index.html e index.css)
+- **Filtro Global**: Selector de "Mes/Año" en la cabecera que filtra Dashboard y Tablas.
+- **Sección Recurrentes**: Nuevo apartado en "Finanzas" para gastos que se repiten.
+
+#### Lógica de Negocio (app.js)
+- **Motor de Filtrado**: Modificar renders para mostrar solo el mes activo.
+- **Lógica Recurrente**: Verificación al inicio para autogenerar gastos programados.
+
+## Plan de Verificación
+1. **Filtros**: Cambiar de mes y verificar que los datos se segmentan correctamente.
+2. **Recurrentes**: Configurar un gasto fijo y verificar su creación automática.

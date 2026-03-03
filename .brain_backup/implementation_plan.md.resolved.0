@@ -1,0 +1,25 @@
+# Corrección de Fechas y Formulario
+
+El objetivo es asegurar que la fecha actual se asigne correctamente por defecto en los formularios usando un formato compatible `YYYY-MM-DD` para el input tipo date, y mejorar el esquema CSS del formulario para evitar que se vea descuadrado en escritorio.
+
+## Proposed Changes
+
+### app.js
+Modificaremos la inicialización de las fechas y el evento de guardado.
+
+#### [MODIFY] [app.js](file:///c:/Users/jose.cespedes/Documents/GitHub/AntiGravity/mi-app-utm/app.js)
+- Reemplazar `valueAsDate` por la inyección de `YYYY-MM-DD`.
+- Fallback automático a la fecha de hoy si al hacer submit el campo mágico de fecha falla o está vacío.
+
+### index.css
+Aplicar grid al formulario.
+
+#### [MODIFY] [index.css](file:///c:/Users/jose.cespedes/Documents/GitHub/AntiGravity/mi-app-utm/index.css)
+- Restructurar `.add-form` de `display: flex; gap: 0.5rem; flex-wrap: wrap;` a una grilla css o flex-basis definido.
+
+## Verification Plan
+
+### Manual Verification
+- Cargar [index.html](file:///c:/Users/jose.cespedes/Documents/GitHub/AntiGravity/mi-app-utm/index.html) en el navegador y ver la fecha preestablecida.
+- Agregar un ingreso y verificar que tiene fecha correcta.
+- Resizing de la pantalla y validar inputs.

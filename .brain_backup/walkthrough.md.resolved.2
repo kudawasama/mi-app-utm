@@ -1,0 +1,27 @@
+# Walkthrough: Fase 3 - Interfaz Premium y Estabilidad
+
+Esta fase se centró en la organización de la aplicación para que no se sienta saturada y en asegurar que todos los indicadores económicos funcionen correctamente.
+
+## Mejoras Implementadas
+
+### 1. Sistema de Navegación por Pestañas
+He dividido la aplicación en dos vistas principales para que la información sea más fácil de digerir:
+-   **📊 Dashboard**: Contiene tus indicadores económicos (UTM, UF, Dólar), el gráfico de la UTM y la nueva distribución visual de ingresos vs gastos con gráfico de torta.
+-   **💸 Finanzas**: Aquí encontrarás los formularios para añadir registros y las tablas detalladas de tus movimientos.
+
+### 2. Estabilización de Indicadores (UF y Dólar)
+-   **Problema**: Se quedaban en "Cargando" o en 0.
+-   **Solución**: Cambié la lógica de "petición masiva" por peticiones individuales mucho más seguras a la API. Ahora cada indicador tiene su propio proceso de carga independiente, lo que garantiza que verás los valores reales de hoy.
+
+### 3. Respaldo Inteligente (Sobrescritura)
+-   **Mejora**: Ahora, al presionar el botón **"💾 Respaldar"**, se abrirá una ventana de tu computadora que te permitirá elegir exactamente dónde guardar el archivo o **sobrescribir uno existente**. 
+-   **Beneficio**: Esto evita que se llenen tus descargas con miles de archivos como `Respaldo (1).json`, `Respaldo (2).json`, etc. (Nota: Si tu navegador no soporta esta función avanzada, descargará el archivo normalmente como respaldo).
+
+### 4. Categoría y Gráfico de Torta integrados
+-   El gráfico de torta ahora vive permanentemente en el Dashboard, permitiéndote ver de un solo vistazo cómo se reparte tu presupuesto mensual.
+
+## Cómo probarlo
+1.  **Recarga la página** con `Ctrl + F5`.
+2.  Observa los valores de **UF y Dólar** (ahora deberían cargar sin problemas).
+3.  Navega entre las pestañas superiores para ver el cambio de vista.
+4.  Prueba el nuevo botón de **Respaldar** para ver la ventana de selección de archivo.

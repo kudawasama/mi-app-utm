@@ -1,0 +1,17 @@
+<current_dom_explanation>
+This is a temporary snapshot of the current page's DOM structure. The DOM will change if you navigate to or interact with another page. Use a tool like browser_get_dom to capture and preserve the DOM in your trajectory if needed for later reference.
+</current_dom_explanation>
+<current_dom>
+No se puede acceder a este sitio
+localhost
+rechazó la conexión.
+Intenta:
+Comprobar la conexión.
+[0] (419,429)<a href='#buttons'>Comprobar el proxy y el firewall />
+.
+ERR_CONNECTION_REFUSED
+[1] (375,558)<button class='blue-button text-button' id='reload-button'>Volver a cargar />
+[2] (635,559)<button class='secondary-button text-button
+              small-link ' id='details-button'>Detalles />
+
+</current_dom>

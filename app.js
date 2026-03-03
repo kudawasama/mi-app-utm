@@ -82,15 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     /**
-     * Extrae el Periodo (Año-Mes) de una fecha chilena para el filtrado mensual
+     * Extrae el Periodo (Año-Mes) de una fecha para el filtrado mensual.
+     * Soporta formato chileno (D/M/Y) e ISO (Y-M-D).
      */
-    const getPeriodFromDate = (dateCL) => {
+    const getPeriodFromDate = (dateStr) => {
         try {
-            if (!dateCL || typeof dateCL !== 'string' || !dateCL.includes('/')) return 'unknown';
-            const parts = dateCL.split('/');
-            if (parts.length < 3) return 'unknown';
-            return `${parts[2]}-${parts[1]}`; // Retorna YYYY-MM
-        } catch (e) { return 'unknown'; }
+            if (!dateStr || typeof dateStr !== 'string') return 'unknown';
+
+            // Caso 1: Formato Chileno (DD/MM/YYYY)
+            if (dateStr.includes('/')) {
+                const parts = dateStr.split('/');
+                if (parts.length >= 3) return `${parts[2]}-${parts[1]}`;
+            }
+
+            // Caso 2: Formato ISO (YYYY-MM-DD)
+            if (dateStr.includes('-')) {
+                const parts = dateStr.split('-');
+                if (parts.length >= 2) return `${parts[0]}-${parts[1]}`;
+            }
+
+            return 'unknown';
+        } catch (e) {
+            console.error("Error al procesar periodo de fecha:", dateStr);
+            return 'unknown';
+        }
     };
 
     /**

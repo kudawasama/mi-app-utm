@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="description" content="Dashboard Personal de Finanzas y Control">
+    <meta name="theme-color" content="#0f172a">
+    <link rel="manifest" href="manifest.json">
+    <title>Mi Panel Financiero</title>
+    <!-- Modern Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <div class="background-animation"></div>
+
+    <header class="main-header">
+        <div class="header-top">
+            <div class="brand">
+                <h1>Centro de Control</h1>
+                <div class="period-filter">
+                    <select id="global-period-selector" class="glass-select-period">
+                        <option value="all">Ver Todos</option>
+                    </select>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn-action" id="btn-quick-add" title="Registro Rápido (Móvil)">⚡</button>
+                <button class="btn-action" id="btn-export" title="Respaldar">💾</button>
+                <button class="btn-action" id="btn-import-trigger" title="Cargar">📂</button>
+                <input type="file" id="import-file" style="display:none" accept=".json">
+            </div>
+        </div>
+
+        <nav class="tab-nav">
+            <button class="tab-btn active" data-tab="tab-dashboard">📊 Dashboard</button>
+            <button class="tab-btn" data-tab="tab-finanzas">💸 Finanzas</button>
+            <button class="tab-btn" data-tab="tab-config">⚙️ Config</button>
+        </nav>
+    </header>
+
+    <main class="dashboard">
+
+        <!-- PESTAÑA DASHBOARD -->
+        <div id="tab-dashboard" class="tab-content active">
+            <div class="dashboard-grid">
+                <!-- Indicadores -->
+                <section class="widget glass-panel">
+                    <div class="widget-header">
+                        <h3>Indicadores Económicos</h3>
+                        <select id="month-selector" class="glass-select-sm">
+                            <option value="">Cargando UTM...</option>
+                        </select>
+                    </div>
+
+                    <div class="indicators-grid">
+                        <div class="indicator-card primary">
+                            <span class="lbl">UTM (Selecc.)</span>
+                            <div class="val">
+                                <span class="currency-symbol">$</span>
+                                <span id="utm-value" class="skeleton-text">00.000</span>
+                            </div>
+                            <div class="trend-indicator" id="trend-indicator"></div>
+                        </div>
+
+                        <div class="indicator-card accent">
+                            <span class="lbl">4.5 UTM</span>
+                            <div class="val">
+                                <span class="currency-symbol">$</span>
+                                <span id="calc-45" class="skeleton-text">000.000</span>
+                            </div>
+                        </div>
+
+                        <div class="indicator-card secondary">
+                            <span class="lbl">UF (Hoy)</span>
+                            <div class="val">
+                                <span class="currency-symbol">$</span>
+                                <span id="uf-value" class="skeleton-text">00.000</span>
+                            </div>
+                        </div>
+
+                        <div class="indicator-card secondary">
+                            <span class="lbl">Dólar (Hoy)</span>
+                            <div class="val">
+                                <span class="currency-symbol">$</span>
+                                <span id="dolar-value" class="skeleton-text">0.000</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-wrapper">
+                        <canvas id="utmChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- Resumen y Gráfico Circular -->
+                <section class="widget glass-panel">
+                    <div class="widget-header">
+                        <h3>Resumen <span id="current-period-display">Todos los datos</span></h3>
+                    </div>
+
+                    <div class="summary-visual-grid">
+                        <div class="balance-cards-mini">
+                            <div class="b-card income">
+                                <span>Ingresos</span>
+                                <h4 id="total-income">$0</h4>
+                            </div>
+                            <div class="b-card expense">
+                                <span>Gastos</span>
+                                <h4 id="total-expense">$0</h4>
+                            </div>
+                            <div class="b-card pending">
+                                <span>Pendiente</span>
+                                <h4 id="total-pending">$0</h4>
+                            </div>
+                        </div>
+
+                        <div class="category-chart-wrapper">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="net-balance-dashboard">
+                        <span>Balance Neto</span>
+                        <h2 id="net-balance">$0</h2>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- PESTAÑA FINANZAS -->
+        <div id="tab-finanzas" class="tab-content">
+            <div class="finanzas-container">
+                <!-- Ingresos -->
+                <section class="widget glass-panel">
+                    <div class="widget-header">
+                        <h3>Mis Ingresos</h3>
+                    </div>
+
+                    <form id="form-income" class="add-form">
+                        <input type="date" id="inc-date" required>
+                        <input type="text" id="inc-desc" placeholder="Descripción" required>
+                        <input type="number" id="inc-amount" placeholder="Monto ($)" required min="0">
+                        <button type="submit" class="btn btn-primary">Añadir</button>
+                    </form>
+
+                    <div class="table-container">
+                        <table id="table-incomes">
+                            <thead>
+                                <tr>
+                                    <th>Fecha</th>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Gastos -->
+                <section class="widget glass-panel">
+                    <div class="widget-header">
+                        <h3>Mis Gastos</h3>
+                    </div>
+
+                    <form id="form-expense" class="add-form grid-4">
+                        <input type="date" id="exp-date" required>
+                        <select id="exp-category" required class="glass-select">
+                            <option value="Hogar">🏠 Hogar</option>
+                            <option value="Servicios">💡 Servicios</option>
+                            <option value="Alimentación">🛒 Alimentación</option>
+                            <option value="Salud">🏥 Salud</option>
+                            <option value="Transporte">🚗 Transporte</option>
+                            <option value="Ocio">🎉 Ocio</option>
+                            <option value="Otros">📦 Otros</option>
+                        </select>
+                        <input type="text" id="exp-desc" placeholder="Descripción" required>
+                        <input type="number" id="exp-amount" placeholder="Monto ($)" required min="0">
+                        <input type="text" id="exp-notes" placeholder="Notas">
+                        <button type="submit" class="btn btn-danger">Añadir</button>
+                    </form>
+
+                    <div class="table-container">
+                        <table id="table-expenses">
+                            <thead>
+                                <tr>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Categoría</th>
+                                    <th>Descripción</th>
+                                    <th>Monto</th>
+                                    <th>Notas</th>
+                                    <th>Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- PESTAÑA CONFIGURACIÓN (Recurrentes) -->
+        <div id="tab-config" class="tab-content">
+            <section class="widget glass-panel">
+                <div class="widget-header">
+                    <h3>Gastos Recurrentes (Fijos)</h3>
+                    <p class="subtitle">Se agregarán automáticamente al iniciar el mes.</p>
+                </div>
+
+                <form id="form-recurrent" class="add-form">
+                    <input type="number" id="rec-day" placeholder="Día (1-28)" min="1" max="28" required>
+                    <select id="rec-category" required class="glass-select">
+                        <option value="Servicios">💡 Servicios</option>
+                        <option value="Hogar">🏠 Hogar</option>
+                        <option value="Ocio">🎉 Ocio</option>
+                        <option value="Otros">📦 Otros</option>
+                    </select>
+                    <input type="text" id="rec-desc" placeholder="Ej: Netflix, Arriendo" required>
+                    <input type="number" id="rec-amount" placeholder="Monto ($)" required>
+                    <button type="submit" class="btn btn-secondary">Programar</button>
+                </form>
+
+                <div class="table-container">
+                    <table id="table-recurrents">
+                        <thead>
+                            <tr>
+                                <th>Día Mes</th>
+                                <th>Categoría</th>
+                                <th>Descripción</th>
+                                <th>Monto</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Modal Registro Rápido -->
+    <div id="quick-add-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2>⚡ Registro Relámpago</h2>
+                <button class="btn-close"
+                    onclick="document.getElementById('quick-add-modal').classList.remove('active')">×</button>
+            </div>
+            <form id="form-quick">
+                <div class="quick-inputs">
+                    <input type="number" id="quick-amount" placeholder="0" autofocus required>
+                    <span class="quick-currency">$ CLP</span>
+                </div>
+                <div class="quick-options">
+                    <select id="quick-category" class="glass-select">
+                        <option value="Alimentación">🛒 Alimentación</option>
+                        <option value="Transporte">🚗 Transporte</option>
+                        <option value="Ocio">🎉 Ocio</option>
+                        <option value="Otros">📦 Otros</option>
+                    </select>
+                    <input type="text" id="quick-desc" placeholder="¿Qué compraste?">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">Guardar Gasto</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Edición -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <h2 id="edit-modal-title">Editar Registro</h2>
+                <button class="btn-close"
+                    onclick="document.getElementById('edit-modal').classList.remove('active')">×</button>
+            </div>
+            <form id="form-edit">
+                <input type="hidden" id="edit-id">
+                <input type="hidden" id="edit-type">
+                <div class="add-form" style="grid-template-columns: 1fr;">
+                    <div class="input-group">
+                        <label class="lbl">Fecha</label>
+                        <input type="date" id="edit-date" required style="width: 100%;">
+                    </div>
+                    <div id="edit-category-group" class="input-group">
+                        <label class="lbl">Categoría</label>
+                        <select id="edit-category" class="glass-select" style="width: 100%;">
+                            <option value="Hogar">🏠 Hogar</option>
+                            <option value="Servicios">💡 Servicios</option>
+                            <option value="Alimentación">🛒 Alimentación</option>
+                            <option value="Salud">🏥 Salud</option>
+                            <option value="Transporte">🚗 Transporte</option>
+                            <option value="Ocio">🎉 Ocio</option>
+                            <option value="Otros">📦 Otros</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label class="lbl">Descripción</label>
+                        <input type="text" id="edit-desc" required style="width: 100%;">
+                    </div>
+                    <div class="input-group">
+                        <label class="lbl">Monto ($)</label>
+                        <input type="number" id="edit-amount" required style="width: 100%;">
+                    </div>
+                    <div id="edit-notes-group" class="input-group">
+                        <label class="lbl">Notas</label>
+                        <input type="text" id="edit-notes" style="width: 100%;">
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <button type="button" class="btn btn-secondary" style="flex: 1;"
+                        onclick="document.getElementById('edit-modal').classList.remove('active')">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>Dashboard de Uso Personal. <br> Filtros mensuales activos.</p>
+    </footer>
+
+</body>
+
+</html>

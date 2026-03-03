@@ -123,17 +123,25 @@
 
                     <div class="summary-visual-grid">
                         <div class="balance-cards-mini">
-                            <div class="b-card income">
-                                <span>Ingresos</span>
-                                <h4 id="total-income">$0</h4>
-                            </div>
-                            <div class="b-card expense">
-                                <span>Gastos</span>
-                                <h4 id="total-expense">$0</h4>
-                            </div>
-                            <div class="b-card pending">
-                                <span>Por Pagar</span>
-                                <h4 id="total-pending">$0</h4>
+                            <div class="balance-cards-mini">
+                                <div class="b-card income interactive" data-detail="income"
+                                    title="Click para ver detalle">
+                                    <span>Ingresos</span>
+                                    <h4 id="total-income">$0</h4>
+                                    <span class="arrow-detail">→</span>
+                                </div>
+                                <div class="b-card expense interactive" data-detail="expense"
+                                    title="Click para ver detalle">
+                                    <span>Gastos</span>
+                                    <h4 id="total-expense">$0</h4>
+                                    <span class="arrow-detail">→</span>
+                                </div>
+                                <div class="b-card pending interactive" data-detail="pending"
+                                    title="Click para ver detalle">
+                                    <span>Por Pagar</span>
+                                    <h4 id="total-pending">$0</h4>
+                                    <span class="arrow-detail">→</span>
+                                </div>
                             </div>
                         </div>
 
@@ -343,6 +351,34 @@
                     <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL: DETALLES DE CATEGORÍA -->
+    <div id="details-modal" class="modal">
+        <div class="modal-content glass-panel" style="max-width: 600px; width: 95%;">
+            <div class="modal-header">
+                <h2 id="details-title">Detalle de Registros</h2>
+                <button class="btn-close"
+                    onclick="document.getElementById('details-modal').classList.remove('active')">×</button>
+            </div>
+            <div id="details-period-info"
+                style="margin-bottom: 1rem; color: var(--primary-color); font-weight: 600; font-size: 0.9rem;"></div>
+            <div class="table-container"
+                style="max-height: 50vh; overflow-y: auto; border-radius: 12px; background: rgba(0,0,0,0.2);">
+                <table id="table-details" style="font-size: 0.85rem;">
+                    <thead>
+                        <tr id="details-table-head">
+                            <!-- Se llena dinámicamente -->
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+            <div style="margin-top: 1.5rem; text-align: right;">
+                <button class="btn btn-secondary"
+                    onclick="document.getElementById('details-modal').classList.remove('active')">Cerrar</button>
+            </div>
         </div>
     </div>
 

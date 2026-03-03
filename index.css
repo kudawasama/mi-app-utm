@@ -272,6 +272,30 @@ body {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 0.6rem;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.b-card.interactive {
+    cursor: pointer;
+    border: 1px solid transparent;
+}
+
+.b-card.interactive:hover {
+    background: rgba(255, 255, 255, 0.08);
+    transform: translateX(5px);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.b-card.interactive .arrow-detail {
+    opacity: 0.3;
+    transition: opacity 0.2s;
+    font-size: 1.2rem;
+}
+
+.b-card.interactive:hover .arrow-detail {
+    opacity: 1;
+    color: var(--primary-color);
 }
 
 .net-balance-dashboard {
@@ -348,6 +372,25 @@ td {
     padding: 1rem 0.8rem;
     font-size: 0.9rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Scrollbar personalizado para contenedores de tablas */
+.table-container::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: var(--primary-color);
 }
 
 /* Acciones en Tablas (Botones ✎ y ✕) */

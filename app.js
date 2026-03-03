@@ -8,8 +8,19 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- REGISTRO DEL SERVICE WORKER (Para soporte PWA/Offline) ---
+    // --- REGISTRO DEL SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./sw.js').catch(() => { });
+        navigator.serviceWorker.register('./sw.js').then(reg => {
+            // Forzar actualización si hay cambios
+            reg.onupdatefound = () => {
+                const installingWorker = reg.installing;
+                installingWorker.onstatechange = () => {
+                    if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                        location.reload();
+                    }
+                };
+            };
+        }).catch(() => { });
     }
 
     // --- VARIABLES GLOBALES Y CONFIGURACIÓN ---
@@ -639,7 +650,74 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
             btn.classList.add('active');
             document.getElementById(btn.dataset.tab).classList.add('active');
-            if (btn.dataset.tab === 'tab-dashboard') renderAll();
+            if (btn.dataset.tab === 'tab-dashboard') {
+                renderAll();
+                // Forzar scroll al inicio del dashboard
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    });
+
+    // --- LÓGICA DE VENTANAS DE DETALLE (MODALES DE RESUMEN) ---
+    const detailsModal = document.getElementById('details-modal');
+    const detailsTitle = document.getElementById('details-title');
+    const detailsTableHead = document.getElementById('details-table-head');
+    const detailsTableBody = document.querySelector('#table-details tbody');
+    const detailsPeriodInfo = document.getElementById('details-period-info');
+
+    /**
+     * Abre un modal con el listado detallado de una categoría del resumen
+     */
+    const openDetailsModal = (type) => {
+        if (!detailsModal) return;
+
+        // Filtrar según el periodo actual
+        const filterFn = (item) => {
+            if (currentPeriod === 'all') return true;
+            return getPeriodFromDate(item.date) === currentPeriod;
+        };
+
+        let itemsToShow = [];
+        let title = "";
+        let headHTML = "";
+
+        if (type === 'income') {
+            title = "Detalle de Ingresos";
+            itemsToShow = incomes.filter(filterFn);
+            headHTML = '<th>Fecha</th><th>Descripción</th><th style="text-align:right">Monto</th>';
+        } else if (type === 'expense') {
+            title = "Detalle de Gastos (Pagados)";
+            itemsToShow = expenses.filter(filterFn).filter(e => e.paid);
+            headHTML = '<th>Fecha</th><th>Categoría</th><th>Descripción</th><th style="text-align:right">Monto</th>';
+        } else if (type === 'pending') {
+            title = "Gastos por Pagar (Pendientes)";
+            itemsToShow = expenses.filter(filterFn).filter(e => !e.paid);
+            headHTML = '<th>Fecha</th><th>Categoría</th><th>Descripción</th><th style="text-align:right">Monto</th>';
+        }
+
+        detailsTitle.textContent = title;
+        detailsPeriodInfo.textContent = `Periodo: ${currentPeriod === 'all' ? 'Historial Completo' : currentPeriod}`;
+        detailsTableHead.innerHTML = headHTML;
+        detailsTableBody.innerHTML = itemsToShow.length ? '' : '<tr><td colspan="4" style="text-align:center; padding: 2rem;">No hay registros en este periodo</td></tr>';
+
+        itemsToShow.slice().reverse().forEach(item => {
+            const tr = document.createElement('tr');
+            if (type === 'income') {
+                tr.innerHTML = `<td>${item.date}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--success-color)">$${formattedCurrency(item.amount)}</td>`;
+            } else {
+                tr.innerHTML = `<td>${item.date}</td><td>${item.category}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--danger-color)">$${formattedCurrency(item.amount)}</td>`;
+            }
+            detailsTableBody.appendChild(tr);
+        });
+
+        detailsModal.classList.add('active');
+    };
+
+    // Agregar eventos a las tarjetas interactivas
+    document.querySelectorAll('.b-card.interactive').forEach(card => {
+        card.addEventListener('click', () => {
+            const type = card.dataset.detail;
+            openDetailsModal(type);
         });
     });
 

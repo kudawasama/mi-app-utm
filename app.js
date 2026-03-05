@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
         totalIncomeEl.innerText = renderAmount(tInc);
         totalExpenseEl.innerText = renderAmount(tExp);
         totalPendingEl.innerText = renderAmount(tPend);
-        netBalanceEl.innerText = renderAmount(tInc - tExp);
+        netBalanceEl.innerText = '$' + formattedCurrency(tInc - tExp);
 
         // Estilo visual del balance neto (Rojo si es negativo)
         netContainer.style.background = (tInc - tExp) < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';

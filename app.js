@@ -39,8 +39,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Preferencia de ocultar montos (persistida en localStorage)
     let hideAmounts = localStorage.getItem('hideAmounts') === 'true';
 
-    // Periodo Inicial: 'all' muestra todos los registros por defecto
-    let currentPeriod = 'all';
+    // Periodo Inicial: se carga desde localStorage o se usa 'all' por defecto
+    let currentPeriod = localStorage.getItem('myAppCurrentPeriod') || 'all';
 
     // --- ELEMENTOS DEL DOM (Vínculos con HTML) ---
     const utmValueEl = document.getElementById('utm-value');
@@ -1010,6 +1010,7 @@ document.addEventListener('DOMContentLoaded', () => {
             periodSelector.addEventListener('change', (e) => {
                 console.log("Cambio de periodo detectado:", e.target.value);
                 currentPeriod = e.target.value;
+                localStorage.setItem('myAppCurrentPeriod', currentPeriod); // Guardar preferencia
 
                 // Actualizar todo inmediatamente
                 updatePeriodDisplayText();

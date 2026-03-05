@@ -361,12 +361,12 @@ body {
     transition: transform 0.25s, background 0.25s;
 }
 
-.toggle-switch input:checked + .toggle-slider {
+.toggle-switch input:checked+.toggle-slider {
     background: rgba(0, 210, 255, 0.25);
     border-color: var(--primary-color);
 }
 
-.toggle-switch input:checked + .toggle-slider::before {
+.toggle-switch input:checked+.toggle-slider::before {
     transform: translateX(18px) translateY(-50%);
     background: var(--primary-color);
 }
@@ -492,6 +492,18 @@ td {
 .action-btn:hover {
     opacity: 1;
     transform: scale(1.1);
+}
+
+.action-btn.calendar-trigger {
+    background: rgba(66, 133, 244, 0.2);
+    color: #4285f4;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.action-btn.calendar-trigger:hover {
+    background: rgba(66, 133, 244, 0.4);
+    box-shadow: 0 0 8px rgba(66, 133, 244, 0.3);
 }
 
 /* Modales */

@@ -78,6 +78,42 @@ document.addEventListener('DOMContentLoaded', () => {
     const renderAmount = (amount) => hideAmounts ? '*****' : '$' + formattedCurrency(amount);
 
     /**
+     * Genera una URL de Google Calendar para un gasto pendiente.
+     * Al abrirse, Google Calendar muestra el formulario del evento pre-llenado.
+     */
+    const createGoogleCalendarUrl = (expense) => {
+        // Convertir fecha chilena (DD/MM/YYYY) a formato Google Calendar (YYYYMMDD)
+        let dateForCal = '';
+        if (expense.date && expense.date.includes('/')) {
+            const [d, m, y] = expense.date.split('/');
+            dateForCal = `${y}${m}${d}`;
+        } else if (expense.date && expense.date.includes('-')) {
+            dateForCal = expense.date.replace(/-/g, '');
+        } else {
+            const now = new Date();
+            dateForCal = now.toISOString().split('T')[0].replace(/-/g, '');
+        }
+
+        // Fecha fin = día siguiente (evento de todo el día)
+        const startDate = dateForCal;
+        const y = parseInt(startDate.slice(0, 4));
+        const m = parseInt(startDate.slice(4, 6)) - 1;
+        const d = parseInt(startDate.slice(6, 8));
+        const nextDay = new Date(y, m, d + 1);
+        const endDate = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+
+        const title = encodeURIComponent(`\uD83D\uDCB0 Pagar: ${expense.desc}`);
+        const details = encodeURIComponent(
+            `Monto: $${formattedCurrency(expense.amount)}\n` +
+            `Categoría: ${expense.category || 'General'}\n` +
+            (expense.notes ? `Notas: ${expense.notes}\n` : '') +
+            `\n--- Generado por Mi App UTM ---`
+        );
+
+        return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&trp=true`;
+    };
+
+    /**
      * Obtiene la fecha de hoy en formato ISO (YYYY-MM-DD) para los inputs de fecha
      */
     const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -447,16 +483,21 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         // Renderizar Tabla de Gastos
-        tbodyExp.innerHTML = filteredExpenses.length ? '' : '<tr><td colspan="7" style="text-align:center">No hay registros</td></tr>';
+        tbodyExp.innerHTML = filteredExpenses.length ? '' : '<tr><td colspan="8" style="text-align:center">No hay registros</td></tr>';
         filteredExpenses.slice().reverse().forEach(exp => {
             try {
                 const tr = document.createElement('tr');
                 const statusClass = exp.paid ? 'badge-paid' : 'badge-pending';
+                // Botón de calendario solo para gastos pendientes
+                const calBtn = !exp.paid
+                    ? `<button class="action-btn calendar-trigger" data-id="${exp.id}" title="Agregar recordatorio a Google Calendar">📅</button>`
+                    : '';
                 tr.innerHTML = `
                     <td><label class="status-toggle"><input type="checkbox" ${exp.paid ? 'checked' : ''} data-id="${exp.id}"><div class="checkmark"></div><span class="status-badge ${statusClass}">${exp.paid ? 'Pagado' : 'Pendiente'}</span></label></td>
                     <td>${exp.date}</td><td>${exp.category}</td><td>${exp.desc}</td><td style="font-weight:700">${renderAmount(exp.amount)}</td><td style="color:var(--text-muted)">${exp.notes || '-'}</td>
                     <td class="td-actions">
                         <div class="action-btn-group">
+                            ${calBtn}
                             <button class="action-btn edit-trigger" data-id="${exp.id}" data-type="expense" title="Editar">✎</button>
                             <button class="action-btn delete-trigger" data-id="${exp.id}" data-type="expense" title="Eliminar">✕</button>
                         </div>
@@ -612,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset(); renderAll();
     });
 
-    // Manejo de clicks dinámicos (Borrar y Editar)
+    // Manejo de clicks dinámicos (Borrar, Editar y Calendario)
     document.addEventListener('click', (e) => {
         // Al presionar botón de eliminar
         if (e.target.classList.contains('delete-trigger')) {
@@ -632,6 +673,35 @@ document.addEventListener('DOMContentLoaded', () => {
         // Al presionar botón de editar
         if (e.target.classList.contains('edit-trigger')) {
             openEditModal(e.target.dataset.id, e.target.dataset.type);
+        }
+
+        // Al presionar botón de calendario (📅)
+        if (e.target.classList.contains('calendar-trigger')) {
+            const expId = e.target.dataset.id;
+            const exp = expenses.find(x => x.id === expId);
+            if (exp) {
+                const url = createGoogleCalendarUrl(exp);
+                window.open(url, '_blank');
+            }
+        }
+
+        // Botón "Exportar todos a Calendario" en modal de pendientes
+        if (e.target.classList.contains('export-all-calendar')) {
+            const filterFn = (item) => {
+                if (currentPeriod === 'all') return true;
+                return getPeriodFromDate(item.date) === currentPeriod;
+            };
+            const pendientes = expenses.filter(filterFn).filter(ex => !ex.paid);
+            if (pendientes.length === 0) {
+                alert('No hay gastos pendientes para exportar.');
+                return;
+            }
+            pendientes.forEach((exp, i) => {
+                // Abrir con pequeño delay para no saturar el navegador
+                setTimeout(() => {
+                    window.open(createGoogleCalendarUrl(exp), '_blank');
+                }, i * 600);
+            });
         }
     });
 
@@ -735,10 +805,21 @@ document.addEventListener('DOMContentLoaded', () => {
             if (type === 'income') {
                 tr.innerHTML = `<td>${item.date}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--success-color)">${renderAmount(item.amount)}</td>`;
             } else {
-                tr.innerHTML = `<td>${item.date}</td><td>${item.category}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--danger-color)">${renderAmount(item.amount)}</td>`;
+                // En pendientes, agregar botón de calendario por fila
+                const calCell = (type === 'pending')
+                    ? `<td><button class="action-btn calendar-trigger" data-id="${item.id}" title="Agregar a Google Calendar">📅</button></td>`
+                    : '';
+                tr.innerHTML = `<td>${item.date}</td><td>${item.category}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--danger-color)">${renderAmount(item.amount)}</td>${calCell}`;
             }
             detailsTableBody.appendChild(tr);
         });
+
+        // Si es modal de pendientes, agregar botón de exportar todos
+        if (type === 'pending' && itemsToShow.length > 0) {
+            const exportRow = document.createElement('tr');
+            exportRow.innerHTML = `<td colspan="5" style="text-align:center; padding: 1rem;"><button class="btn btn-primary export-all-calendar" style="font-size:0.85rem; padding: 0.5rem 1.2rem;">📅 Exportar todos a Google Calendar</button></td>`;
+            detailsTableBody.appendChild(exportRow);
+        }
 
         detailsModal.classList.add('active');
     };

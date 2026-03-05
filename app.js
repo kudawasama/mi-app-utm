@@ -35,6 +35,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
     let recurrents = JSON.parse(localStorage.getItem('myRecurrents')) || [];
 
+    // Preferencia de ocultar montos (persistida en localStorage)
+    let hideAmounts = localStorage.getItem('hideAmounts') === 'true';
+
     // Periodo Inicial: 'all' muestra todos los registros por defecto
     let currentPeriod = 'all';
 
@@ -53,6 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalPendingEl = document.getElementById('total-pending');
     const netBalanceEl = document.getElementById('net-balance');
     const netContainer = document.querySelector('.net-balance-dashboard');
+    const toggleHideAmounts = document.getElementById('toggle-hide-amounts');
 
     const btnQuickAdd = document.getElementById('btn-quick-add');
     const quickModal = document.getElementById('quick-add-modal');
@@ -450,10 +454,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tExp = filteredExpenses.reduce((a, b) => a + Number(b.amount), 0);
         const tPend = filteredExpenses.filter(e => !e.paid).reduce((a, b) => a + Number(b.amount), 0);
 
-        totalIncomeEl.innerText = '$' + formattedCurrency(tInc);
-        totalExpenseEl.innerText = '$' + formattedCurrency(tExp);
-        totalPendingEl.innerText = '$' + formattedCurrency(tPend);
-        netBalanceEl.innerText = '$' + formattedCurrency(tInc - tExp);
+        totalIncomeEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tInc);
+        totalExpenseEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tExp);
+        totalPendingEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tPend);
+        netBalanceEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tInc - tExp);
 
         // Estilo visual del balance neto (Rojo si es negativo)
         netContainer.style.background = (tInc - tExp) < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';
@@ -790,6 +794,17 @@ document.addEventListener('DOMContentLoaded', () => {
         processRecurrents(); // Revisar si hay gastos automáticos que crear
         setupPeriodSelector(); // Crear lista de meses según los datos
         fetchIndicators(); // Pedir UF/Dólar/UTM a la API
+
+        // Inicializar toggle de ocultar montos
+        if (toggleHideAmounts) {
+            toggleHideAmounts.checked = hideAmounts;
+            toggleHideAmounts.addEventListener('change', () => {
+                hideAmounts = toggleHideAmounts.checked;
+                localStorage.setItem('hideAmounts', hideAmounts);
+                renderAll();
+            });
+        }
+
         renderAll(); // Dibujar tablas y gráficos
 
     } catch (err) {

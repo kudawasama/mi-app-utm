@@ -27,6 +27,37 @@
     /* Rojo peligro */
     --accent-color: #e879f9;
     /* Rosa acento */
+
+    --font-main: 'Outfit', sans-serif;
+}
+
+/* --- TEMA MATRIX / TERMINAL --- */
+[data-theme="matrix"] {
+    --primary-color: #00ff41;
+    --secondary-color: #008f11;
+    --bg-color: #000000;
+    --panel-bg: rgba(0, 10, 0, 0.95);
+    --panel-border: #00ff41;
+    --text-main: #00ff41;
+    --text-muted: #008f11;
+    --success-color: #00ff41;
+    --danger-color: #ff0000;
+    --accent-color: #ffff00;
+    --font-main: 'Courier New', Courier, monospace;
+}
+
+[data-theme="matrix"] .background-animation {
+    display: none;
+}
+
+[data-theme="matrix"] .glass-panel,
+[data-theme="matrix"] .btn,
+[data-theme="matrix"] input,
+[data-theme="matrix"] select,
+[data-theme="matrix"] .indicator-card,
+[data-theme="matrix"] .b-card {
+    border-radius: 0 !important;
+    backdrop-filter: none !important;
 }
 
 /* --- REGLAS GENERALES --- */
@@ -34,7 +65,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-    font-family: 'Outfit', sans-serif;
+    font-family: var(--font-main);
 }
 
 body {

@@ -15,7 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (versionEl) versionEl.textContent = APP_VERSION;
 
     // --- REGISTRO DEL SERVICE WORKER (Para soporte PWA/Offline) ---
-    // --- REGISTRO DEL SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('./sw.js').then(reg => {
             // Forzar actualización si hay cambios
@@ -78,6 +77,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const editModal = document.getElementById('edit-modal');
     const formEdit = document.getElementById('form-edit');
+
+    // --- GESTIÓN DE TEMAS (DISEÑO) ---
+    const initTheme = () => {
+        const savedTheme = localStorage.getItem('appTheme') || 'glass';
+        document.body.setAttribute('data-theme', savedTheme);
+
+        // Crear botón de cambio de tema e inyectarlo en el header
+        const themeBtn = document.createElement('button');
+        themeBtn.className = 'btn-action';
+        themeBtn.innerHTML = '💻'; // Icono
+        themeBtn.title = 'Cambiar Diseño (Matrix/Glass)';
+        themeBtn.onclick = () => {
+            const current = document.body.getAttribute('data-theme') || 'glass';
+            const next = current === 'glass' ? 'matrix' : 'glass';
+            document.body.setAttribute('data-theme', next);
+            localStorage.setItem('appTheme', next);
+            // Actualizar gráficos para reflejar nuevos colores
+            renderAll();
+            if (allUtmData.length) renderUtmChart(allUtmData.slice(0, 8).reverse());
+        };
+
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions) headerActions.prepend(themeBtn);
+    };
 
     // --- FUNCIONES DE UTILIDAD ---
 
@@ -187,10 +210,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return `${y}-${m}-${d}`;
     };
 
-    /**
-     * Extrae el Periodo (Año-Mes) de una fecha para el filtrado mensual.
-     * Soporta formato chileno (D/M/Y) e ISO (Y-M-D).
-     */
     /**
      * Extrae el Periodo (Año-Mes) de una fecha de forma ultra-robusta.
      * Soporta DD/MM/YYYY, YYYY-MM-DD, timestamps y objetos Date.
@@ -422,14 +441,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (utmChart) utmChart.destroy();
+
+        // Colores dinámicos según el tema
+        const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
+        const colorLine = isMatrix ? '#00ff41' : '#00d2ff';
+        const colorBg = isMatrix ? 'rgba(0, 255, 65, 0.1)' : 'rgba(0,210,255,0.05)';
+
         utmChart = new Chart(ctx, {
             type: 'line',
             data: {
                 labels: data.map(d => new Date(d.fecha).toLocaleDateString('es-CL', { month: 'short' })),
                 datasets: [{
                     data: data.map(d => d.valor),
-                    borderColor: '#00d2ff',
-                    backgroundColor: 'rgba(0,210,255,0.05)',
+                    borderColor: colorLine,
+                    backgroundColor: colorBg,
                     fill: true, tension: 0.4, pointRadius: 2
                 }]
             },
@@ -457,13 +482,19 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categoryChart) categoryChart.destroy();
         if (labels.length === 0) return;
 
+        // Paleta de colores dinámica
+        const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
+        const colors = isMatrix
+            ? ['#00ff41', '#008f11', '#005c00', '#33ff66', '#00cc33', '#006600', '#ccffcc']
+            : ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5', '#8b5cf6'];
+
         categoryChart = new Chart(ctx, {
             type: 'doughnut',
             data: {
                 labels,
                 datasets: [{
                     data: values,
-                    backgroundColor: ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5', '#8b5cf6'],
+                    backgroundColor: colors,
                     borderWidth: 0
                 }]
             },
@@ -1041,6 +1072,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ejecutar procesos iniciales
         processRecurrents(); // Revisar si hay gastos automáticos que crear
         setupPeriodSelector(); // Crear lista de meses según los datos
+        initTheme(); // Inicializar tema visual
         fetchIndicators(); // Pedir UF/Dólar/UTM a la API
 
         // Inicializar toggle de ocultar montos

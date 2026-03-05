@@ -34,9 +34,9 @@
 /* --- TEMA MATRIX / TERMINAL --- */
 [data-theme="matrix"] {
     --primary-color: #00ff41;
-    --secondary-color: #008f11;
+    --secondary-color: #003b00;
     --bg-color: #000000;
-    --panel-bg: rgba(0, 10, 0, 0.95);
+    --panel-bg: #000000;
     --panel-border: #00ff41;
     --text-main: #00ff41;
     --text-muted: #008f11;
@@ -50,14 +50,45 @@
     display: none;
 }
 
-[data-theme="matrix"] .glass-panel,
-[data-theme="matrix"] .btn,
-[data-theme="matrix"] input,
-[data-theme="matrix"] select,
-[data-theme="matrix"] .indicator-card,
-[data-theme="matrix"] .b-card {
+/* --- REGLAS AGRESIVAS PARA MODO TERMINAL --- */
+/* Forzar bordes cuadrados y eliminar sombras en TODO */
+[data-theme="matrix"] * {
     border-radius: 0 !important;
     backdrop-filter: none !important;
+    box-shadow: none !important;
+}
+
+/* Header estilo consola */
+[data-theme="matrix"] .main-header {
+    background: #000 !important;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+[data-theme="matrix"] .brand h1 {
+    background: none !important;
+    -webkit-text-fill-color: var(--primary-color) !important;
+    color: var(--primary-color) !important;
+    text-shadow: 0 0 5px var(--primary-color);
+    text-transform: uppercase;
+}
+
+/* Inputs y Botones estilo CMD */
+[data-theme="matrix"] input,
+[data-theme="matrix"] select,
+[data-theme="matrix"] .btn,
+[data-theme="matrix"] .glass-panel,
+[data-theme="matrix"] .modal-content,
+[data-theme="matrix"] .indicator-card {
+    background: #000 !important;
+    border: 1px solid var(--primary-color) !important;
+    color: var(--primary-color) !important;
+}
+
+[data-theme="matrix"] .btn:hover,
+[data-theme="matrix"] .tab-btn.active {
+    background: var(--primary-color) !important;
+    color: #000 !important;
+    font-weight: bold;
 }
 
 /* --- REGLAS GENERALES --- */

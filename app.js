@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let incomes = JSON.parse(localStorage.getItem('myIncomes')) || [];
     let expenses = JSON.parse(localStorage.getItem('myExpenses')) || [];
     let recurrents = JSON.parse(localStorage.getItem('myRecurrents')) || [];
+    let tasks = JSON.parse(localStorage.getItem('myTasks')) || [];
 
     // Preferencia de ocultar montos (persistida en localStorage)
     let hideAmounts = localStorage.getItem('hideAmounts') === 'true';
@@ -58,6 +59,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const netContainer = document.querySelector('.net-balance-dashboard');
     const toggleHideAmounts = document.getElementById('toggle-hide-amounts');
 
+    const formTask = document.getElementById('form-task');
+    const taskDescInput = document.getElementById('task-desc');
+    const taskDateInput = document.getElementById('task-date');
+    const taskListEl = document.getElementById('task-list');
+    const taskCountEl = document.getElementById('task-count');
+
     const btnQuickAdd = document.getElementById('btn-quick-add');
     const quickModal = document.getElementById('quick-add-modal');
     const importFileInput = document.getElementById('import-file');
@@ -81,14 +88,14 @@ document.addEventListener('DOMContentLoaded', () => {
      * Genera una URL de Google Calendar para un gasto pendiente.
      * Al abrirse, Google Calendar muestra el formulario del evento pre-llenado.
      */
-    const createGoogleCalendarUrl = (expense) => {
-        // Convertir fecha chilena (DD/MM/YYYY) a formato Google Calendar (YYYYMMDD)
+    const createGoogleCalendarUrl = (item, isTask = false) => {
+        // Convertir fecha chilena (DD/MM/YYYY) o ISO (YYYY-MM-DD) a formato Google Calendar (YYYYMMDD)
         let dateForCal = '';
-        if (expense.date && expense.date.includes('/')) {
-            const [d, m, y] = expense.date.split('/');
+        if (item.date && item.date.includes('/')) {
+            const [d, m, y] = item.date.split('/');
             dateForCal = `${y}${m}${d}`;
-        } else if (expense.date && expense.date.includes('-')) {
-            dateForCal = expense.date.replace(/-/g, '');
+        } else if (item.date && item.date.includes('-')) {
+            dateForCal = item.date.replace(/-/g, '');
         } else {
             const now = new Date();
             dateForCal = now.toISOString().split('T')[0].replace(/-/g, '');
@@ -102,13 +109,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const nextDay = new Date(y, m, d + 1);
         const endDate = nextDay.toISOString().split('T')[0].replace(/-/g, '');
 
-        const title = encodeURIComponent(`\uD83D\uDCB0 Pagar: ${expense.desc}`);
-        const details = encodeURIComponent(
-            `Monto: $${formattedCurrency(expense.amount)}\n` +
-            `Categoría: ${expense.category || 'General'}\n` +
-            (expense.notes ? `Notas: ${expense.notes}\n` : '') +
-            `\n--- Generado por Mi App UTM ---`
-        );
+        const prefix = isTask ? '\uD83D\uDCDD Tarea: ' : '\uD83D\uDCB0 Pagar: ';
+        const title = encodeURIComponent(prefix + (item.desc || ''));
+
+        let detailsText = '';
+        if (isTask) {
+            detailsText = `Tarea: ${item.desc}\nFecha: ${item.date || 'Sin fecha'}`;
+        } else {
+            detailsText = `Monto: $${formattedCurrency(item.amount)}\nCategoría: ${item.category || 'General'}\n` +
+                (item.notes ? `Notas: ${item.notes}\n` : '');
+        }
+
+        const details = encodeURIComponent(detailsText + `\n\n--- Generado por Mi App UTM ---`);
 
         return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&trp=true`;
     };
@@ -532,6 +544,44 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCategoryChart(filteredExpenses);
     };
 
+    // --- LÓGICA DE TAREAS (Agenda) ---
+
+    /**
+     * Dibuja la lista de tareas en la pestaña Agenda
+     */
+    const renderTasks = () => {
+        if (!taskListEl) return;
+        taskListEl.innerHTML = '';
+
+        const sortedTasks = tasks.slice().sort((a, b) => {
+            if (a.completed === b.completed) return new Date(b.createdAt) - new Date(a.createdAt);
+            return a.completed ? 1 : -1;
+        });
+
+        const pendingCount = tasks.filter(t => !t.completed).length;
+        taskCountEl.textContent = `${pendingCount} tarea${pendingCount !== 1 ? 's' : ''} pendiente${pendingCount !== 1 ? 's' : ''}`;
+
+        sortedTasks.forEach(task => {
+            const div = document.createElement('div');
+            div.className = `task-item ${task.completed ? 'completed' : ''}`;
+
+            const dateDisplay = task.date ? `<span class="task-meta">\uD83D\uDCC5 ${formatToCLDate(task.date)}</span>` : '';
+
+            div.innerHTML = `
+                <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">
+                <div class="task-info">
+                    <span class="task-text">${task.desc}</span>
+                    ${dateDisplay}
+                </div>
+                <div class="task-actions">
+                    <button class="action-btn calendar-trigger" data-id="${task.id}" data-type="task" title="Recordatorio en Google Calendar">\uD83D\uDCC5</button>
+                    <button class="action-btn delete-trigger" data-id="${task.id}" data-type="task" title="Eliminar">✕</button>
+                </div>
+            `;
+            taskListEl.appendChild(div);
+        });
+    };
+
     // --- LÓGICA DE EDICIÓN DE REGISTROS ---
 
     /**
@@ -653,6 +703,24 @@ document.addEventListener('DOMContentLoaded', () => {
         e.target.reset(); renderAll();
     });
 
+    // Manejo del formulario de Tareas
+    if (formTask) {
+        formTask.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const newTask = {
+                id: Date.now().toString(),
+                desc: taskDescInput.value,
+                date: taskDateInput.value,
+                completed: false,
+                createdAt: new Date().toISOString()
+            };
+            tasks.push(newTask);
+            localStorage.setItem('myTasks', JSON.stringify(tasks));
+            e.target.reset();
+            renderTasks();
+        });
+    }
+
     // Manejo de clicks dinámicos (Borrar, Editar y Calendario)
     document.addEventListener('click', (e) => {
         // Al presionar botón de eliminar
@@ -662,11 +730,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (type === 'income') incomes = incomes.filter(i => i.id !== id);
                 else if (type === 'expense') expenses = expenses.filter(ex => ex.id !== id);
                 else if (type === 'recurrent') recurrents = recurrents.filter(r => r.id !== id);
+                else if (type === 'task') tasks = tasks.filter(t => t.id !== id);
 
                 localStorage.setItem('myIncomes', JSON.stringify(incomes));
                 localStorage.setItem('myExpenses', JSON.stringify(expenses));
                 localStorage.setItem('myRecurrents', JSON.stringify(recurrents));
-                renderAll();
+                localStorage.setItem('myTasks', JSON.stringify(tasks));
+
+                if (type === 'task') renderTasks();
+                else renderAll();
             }
         }
 
@@ -677,10 +749,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Al presionar botón de calendario (📅)
         if (e.target.classList.contains('calendar-trigger')) {
-            const expId = e.target.dataset.id;
-            const exp = expenses.find(x => x.id === expId);
-            if (exp) {
-                const url = createGoogleCalendarUrl(exp);
+            const { id, type } = e.target.dataset;
+            let item;
+            const isTask = type === 'task';
+
+            if (isTask) item = tasks.find(t => t.id === id);
+            else item = expenses.find(x => x.id === id);
+
+            if (item) {
+                const url = createGoogleCalendarUrl(item, isTask);
                 window.open(url, '_blank');
             }
         }
@@ -705,10 +782,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Cambio de estado de Pago (Checkboxes de gastos)
+    // Cambio de estado de Pago o Tarea (Checkboxes)
     document.addEventListener('change', (e) => {
         if (e.target.type === 'checkbox' && e.target.dataset.id) {
-            const exp = expenses.find(x => x.id === e.target.dataset.id);
+            const id = e.target.dataset.id;
+            // Si es un checkbox de la lista de tareas
+            if (e.target.classList.contains('task-checkbox')) {
+                const task = tasks.find(t => t.id === id);
+                if (task) {
+                    task.completed = e.target.checked;
+                    localStorage.setItem('myTasks', JSON.stringify(tasks));
+                    renderTasks();
+                }
+                return;
+            }
+
+            // Si es un checkbox de la tabla de gastos
+            const exp = expenses.find(ex => ex.id === id);
             if (exp) {
                 exp.paid = e.target.checked;
                 localStorage.setItem('myExpenses', JSON.stringify(expenses));
@@ -754,6 +844,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderAll();
                 // Forzar scroll al inicio del dashboard
                 window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            if (btn.dataset.tab === 'tab-tasks') {
+                renderTasks();
             }
         });
     });

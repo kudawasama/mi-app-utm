@@ -456,7 +456,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 labels,
                 datasets: [{
                     data: values,
-                    backgroundColor: ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5'],
+                    backgroundColor: ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5', '#8b5cf6'],
                     borderWidth: 0
                 }]
             },
@@ -1001,6 +1001,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INICIALIZACIÓN (Arranque de la App) ---
     try {
+        // Detectar si se abrió desde un acceso directo del móvil (Shortcut)
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('action') === 'quick-add') {
+            setTimeout(() => {
+                const qm = document.getElementById('quick-add-modal');
+                if (qm) qm.classList.add('active');
+            }, 300);
+        }
+
         // Poner la fecha de hoy por defecto en los formularios
         if (document.getElementById('inc-date')) document.getElementById('inc-date').value = getTodayString();
         if (document.getElementById('exp-date')) document.getElementById('exp-date').value = getTodayString();

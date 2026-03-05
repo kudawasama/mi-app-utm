@@ -7,6 +7,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Versión de la aplicación (debe coincidir con la del Service Worker)
+    const APP_VERSION = 'v17';
+
     // --- REGISTRO DEL SERVICE WORKER (Para soporte PWA/Offline) ---
     // --- REGISTRO DEL SERVICE WORKER ---
     if ('serviceWorker' in navigator) {
@@ -1001,6 +1004,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- INICIALIZACIÓN (Arranque de la App) ---
     try {
+        // Mostrar la versión de la app en la pestaña de Configuración
+        const versionDisplayEl = document.getElementById('app-version-display');
+        if (versionDisplayEl) {
+            versionDisplayEl.textContent = APP_VERSION;
+        }
+
         // Detectar si se abrió desde un acceso directo del móvil (Shortcut)
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.get('action') === 'quick-add') {

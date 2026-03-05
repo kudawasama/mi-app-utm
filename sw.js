@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open('utm-finanzas-v8').then(cache => {
+        caches.open('utm-finanzas-v9').then(cache => {
             // Allow them down softly if they are not cached, it just falls back to network
             return cache.addAll([
                 './index.html',
@@ -19,7 +19,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cache => {
-                    if (cache !== 'utm-finanzas-v8') {
+                    if (cache !== 'utm-finanzas-v9') {
                         return caches.delete(cache);
                     }
                 })

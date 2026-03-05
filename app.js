@@ -73,6 +73,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const formattedCurrency = (val) => new Intl.NumberFormat('es-CL').format(Math.round(val));
 
     /**
+     * Muestra el monto formateado o asteriscos si la opción de ocultar está activa
+     */
+    const renderAmount = (amount) => hideAmounts ? '*****' : '$' + formattedCurrency(amount);
+
+    /**
      * Obtiene la fecha de hoy en formato ISO (YYYY-MM-DD) para los inputs de fecha
      */
     const getTodayString = () => new Date().toISOString().split('T')[0];
@@ -376,7 +381,28 @@ document.addEventListener('DOMContentLoaded', () => {
                     borderWidth: 0
                 }]
             },
-            options: { responsive: true, maintainAspectRatio: false, cutout: '75%', plugins: { legend: { display: false } } }
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: function (context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += hideAmounts ? '*****' : '$' + formattedCurrency(context.parsed);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                }
+            }
         });
     };
 
@@ -409,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td>${inc.date}</td><td>${inc.desc}</td><td style="color:var(--success-color)">$${formattedCurrency(inc.amount)}</td>
+                    <td>${inc.date}</td><td>${inc.desc}</td><td style="color:var(--success-color)">${renderAmount(inc.amount)}</td>
                     <td class="td-actions">
                         <div class="action-btn-group">
                             <button class="action-btn edit-trigger" data-id="${inc.id}" data-type="income" title="Editar">✎</button>
@@ -428,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const statusClass = exp.paid ? 'badge-paid' : 'badge-pending';
                 tr.innerHTML = `
                     <td><label class="status-toggle"><input type="checkbox" ${exp.paid ? 'checked' : ''} data-id="${exp.id}"><div class="checkmark"></div><span class="status-badge ${statusClass}">${exp.paid ? 'Pagado' : 'Pendiente'}</span></label></td>
-                    <td>${exp.date}</td><td>${exp.category}</td><td>${exp.desc}</td><td style="font-weight:700">$${formattedCurrency(exp.amount)}</td><td style="color:var(--text-muted)">${exp.notes || '-'}</td>
+                    <td>${exp.date}</td><td>${exp.category}</td><td>${exp.desc}</td><td style="font-weight:700">${renderAmount(exp.amount)}</td><td style="color:var(--text-muted)">${exp.notes || '-'}</td>
                     <td class="td-actions">
                         <div class="action-btn-group">
                             <button class="action-btn edit-trigger" data-id="${exp.id}" data-type="expense" title="Editar">✎</button>
@@ -444,7 +470,7 @@ document.addEventListener('DOMContentLoaded', () => {
         recurrents.forEach(rec => {
             try {
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>Día ${rec.day}</td><td>${rec.category}</td><td>${rec.desc}</td><td>$${formattedCurrency(rec.amount)}</td><td><button class="action-btn delete-trigger" data-id="${rec.id}" data-type="recurrent">✕</button></td>`;
+                tr.innerHTML = `<td>Día ${rec.day}</td><td>${rec.category}</td><td>${rec.desc}</td><td>${renderAmount(rec.amount)}</td><td><button class="action-btn delete-trigger" data-id="${rec.id}" data-type="recurrent">✕</button></td>`;
                 tbodyRec.appendChild(tr);
             } catch (e) { }
         });
@@ -454,10 +480,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const tExp = filteredExpenses.reduce((a, b) => a + Number(b.amount), 0);
         const tPend = filteredExpenses.filter(e => !e.paid).reduce((a, b) => a + Number(b.amount), 0);
 
-        totalIncomeEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tInc);
-        totalExpenseEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tExp);
-        totalPendingEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tPend);
-        netBalanceEl.innerText = hideAmounts ? '*****' : '$' + formattedCurrency(tInc - tExp);
+        totalIncomeEl.innerText = renderAmount(tInc);
+        totalExpenseEl.innerText = renderAmount(tExp);
+        totalPendingEl.innerText = renderAmount(tPend);
+        netBalanceEl.innerText = renderAmount(tInc - tExp);
 
         // Estilo visual del balance neto (Rojo si es negativo)
         netContainer.style.background = (tInc - tExp) < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';
@@ -707,9 +733,9 @@ document.addEventListener('DOMContentLoaded', () => {
         itemsToShow.slice().reverse().forEach(item => {
             const tr = document.createElement('tr');
             if (type === 'income') {
-                tr.innerHTML = `<td>${item.date}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--success-color)">$${formattedCurrency(item.amount)}</td>`;
+                tr.innerHTML = `<td>${item.date}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--success-color)">${renderAmount(item.amount)}</td>`;
             } else {
-                tr.innerHTML = `<td>${item.date}</td><td>${item.category}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--danger-color)">$${formattedCurrency(item.amount)}</td>`;
+                tr.innerHTML = `<td>${item.date}</td><td>${item.category}</td><td>${item.desc}</td><td style="text-align:right; font-weight:700; color:var(--danger-color)">${renderAmount(item.amount)}</td>`;
             }
             detailsTableBody.appendChild(tr);
         });

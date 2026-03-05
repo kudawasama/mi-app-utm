@@ -89,32 +89,46 @@ document.addEventListener('DOMContentLoaded', () => {
      * Al abrirse, Google Calendar muestra el formulario del evento pre-llenado.
      */
     const createGoogleCalendarUrl = (item, isTask = false) => {
-        // Convertir fecha chilena (DD/MM/YYYY) o ISO (YYYY-MM-DD) a formato Google Calendar (YYYYMMDD)
-        let dateForCal = '';
-        if (item.date && item.date.includes('/')) {
-            const [d, m, y] = item.date.split('/');
-            dateForCal = `${y}${m}${d}`;
-        } else if (item.date && item.date.includes('-')) {
-            dateForCal = item.date.replace(/-/g, '');
-        } else {
-            const now = new Date();
-            dateForCal = now.toISOString().split('T')[0].replace(/-/g, '');
-        }
+        let startDate = '';
+        let endDate = '';
 
-        // Fecha fin = día siguiente (evento de todo el día)
-        const startDate = dateForCal;
-        const y = parseInt(startDate.slice(0, 4));
-        const m = parseInt(startDate.slice(4, 6)) - 1;
-        const d = parseInt(startDate.slice(6, 8));
-        const nextDay = new Date(y, m, d + 1);
-        const endDate = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+        if (item.date && item.date.includes('T')) {
+            // Formato ISO Datetime (YYYY-MM-DDTHH:MM)
+            const baseDate = item.date.replace(/[-:]/g, ''); // YYYYMMDDTHHMM
+            startDate = baseDate + '00'; // Añadir segundos
+
+            // Fecha fin = 1 hora después (por defecto para tareas con hora)
+            const d = new Date(item.date);
+            d.setHours(d.getHours() + 1);
+            endDate = d.toISOString().replace(/[-:]/g, '').split('.')[0];
+        } else {
+            // Formato solo fecha o fallbacks
+            let dateForCal = '';
+            if (item.date && item.date.includes('/')) {
+                const [d, m, y] = item.date.split('/');
+                dateForCal = `${y}${m}${d}`;
+            } else if (item.date && item.date.includes('-')) {
+                dateForCal = item.date.replace(/-/g, '');
+            } else {
+                const now = new Date();
+                dateForCal = now.toISOString().split('T')[0].replace(/-/g, '');
+            }
+
+            startDate = dateForCal;
+            const y = parseInt(startDate.slice(0, 4));
+            const m = parseInt(startDate.slice(4, 6)) - 1;
+            const d = parseInt(startDate.slice(6, 8));
+            const nextDay = new Date(y, m, d + 1);
+            endDate = nextDay.toISOString().split('T')[0].replace(/-/g, '');
+        }
 
         const prefix = isTask ? '\uD83D\uDCDD Tarea: ' : '\uD83D\uDCB0 Pagar: ';
         const title = encodeURIComponent(prefix + (item.desc || ''));
 
         let detailsText = '';
         if (isTask) {
-            detailsText = `Tarea: ${item.desc}\nFecha: ${item.date || 'Sin fecha'}`;
+            const dateStr = item.date ? item.date.replace('T', ' ') : 'Sin fecha';
+            detailsText = `Tarea: ${item.desc}\nFecha/Hora: ${dateStr}`;
         } else {
             detailsText = `Monto: $${formattedCurrency(item.amount)}\nCategoría: ${item.category || 'General'}\n` +
                 (item.notes ? `Notas: ${item.notes}\n` : '');
@@ -123,6 +137,23 @@ document.addEventListener('DOMContentLoaded', () => {
         const details = encodeURIComponent(detailsText + `\n\n--- Generado por Mi App UTM ---`);
 
         return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&dates=${startDate}/${endDate}&details=${details}&trp=true`;
+    };
+
+    /**
+     * Convierte una fecha ISO (Año-Mes-Día o Datetime) al formato visual chileno con hora opcional
+     */
+    const formatToCLDateTime = (dateStr) => {
+        if (!dateStr) return '-';
+        if (dateStr.includes('/')) return dateStr;
+
+        if (dateStr.includes('T')) {
+            const [date, time] = dateStr.split('T');
+            const [y, m, d] = date.split('-');
+            return `${d}/${m}/${y} ${time}`;
+        }
+
+        const [y, m, d] = dateStr.split('-');
+        return `${d}/${m}/${y}`;
     };
 
     /**
@@ -565,7 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const div = document.createElement('div');
             div.className = `task-item ${task.completed ? 'completed' : ''}`;
 
-            const dateDisplay = task.date ? `<span class="task-meta">\uD83D\uDCC5 ${formatToCLDate(task.date)}</span>` : '';
+            const dateDisplay = task.date ? `<span class="task-meta">\uD83D\uDCC5 ${formatToCLDateTime(task.date)}</span>` : '';
 
             div.innerHTML = `
                 <input type="checkbox" class="task-checkbox" ${task.completed ? 'checked' : ''} data-id="${task.id}">

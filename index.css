@@ -33,24 +33,32 @@
 
 /* --- TEMA MATRIX / TERMINAL --- */
 [data-theme="matrix"] {
-    /* Paleta Modern CLI / Dev Tools (Estilo VS Code / Cloud Shell) */
-    --primary-color: #58a6ff;
-    /* Azul comando */
-    --secondary-color: #238636;
-    /* Verde éxito */
-    --bg-color: #0d1117;
-    /* Fondo Terminal */
-    --panel-bg: #0d1117;
-    /* Sin fondo distinto, solo bordes */
-    --panel-border: #30363d;
-    --text-main: #e6edf3;
-    /* Blanco terminal */
-    --text-muted: #8b949e;
-    --success-color: #3fb950;
-    --danger-color: #f85149;
-    --accent-color: #d29922;
+    /* Paleta Professional Cloud Shell (Inspirada en Google Cloud / VS Code) */
+    --bg-color: #1e1e1e;
+    /* Fondo Editor */
+    --panel-bg: #252526;
+    /* Fondo Paneles */
+    --panel-border: #333333;
+    /* Bordes sutiles */
 
-    --font-main: 'Consolas', 'Monaco', 'Lucida Console', monospace;
+    --primary-color: #4fc1ff;
+    /* Azul Variables */
+    --secondary-color: #dcdcaa;
+    /* Amarillo Funciones */
+    --accent-color: #c586c0;
+    /* Morado Control */
+
+    --text-main: #cccccc;
+    /* Texto base */
+    --text-muted: #6a9955;
+    /* Comentarios (Verde) */
+
+    --success-color: #4ec9b0;
+    /* Verde Azulado */
+    --danger-color: #ce9178;
+    /* Naranja/Rojo Strings */
+
+    --font-main: 'Roboto Mono', 'Fira Code', monospace;
 }
 
 [data-theme="matrix"] .background-animation {
@@ -58,19 +66,20 @@
 }
 
 /* --- REGLAS AGRESIVAS PARA MODO TERMINAL --- */
-/* Reset agresivo para look TUI (Text User Interface) */
 [data-theme="matrix"] * {
     border-radius: 0 !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
     font-family: var(--font-main) !important;
     text-transform: none;
+    letter-spacing: 0px;
 }
 
 /* Header estilo consola */
 [data-theme="matrix"] .main-header {
-    background: #161b22 !important;
-    border-bottom: 1px solid var(--panel-border);
+    background: #333333 !important;
+    border-bottom: 1px solid #000;
+    padding: 0.5rem 1rem;
 }
 
 [data-theme="matrix"] .brand h1 {
@@ -78,82 +87,98 @@
     -webkit-text-fill-color: var(--text-main) !important;
     color: var(--text-main) !important;
     text-shadow: none;
-    font-weight: 700;
-    letter-spacing: -0.5px;
+    font-weight: 500;
+    font-size: 1rem;
 }
 
-/* Prefijo de terminal para el título */
+/* Simulación de Prompt en el título */
 [data-theme="matrix"] .brand h1::before {
-    content: "~/app $ ";
+    content: "root@gemini-cli:~/finanzas $ ";
     color: var(--success-color);
     margin-right: 5px;
 }
 
-/* Cursor parpadeante */
-[data-theme="matrix"] .brand h1::after {
-    content: '▋';
-    animation: blink 1s step-end infinite;
-    color: var(--text-muted);
-    margin-left: 5px;
-    font-size: 0.9em;
-}
-
-@keyframes blink {
-    50% {
-        opacity: 0;
-    }
-}
-
-/* Inputs y Botones estilo CMD */
+/* Inputs como líneas de comando */
 [data-theme="matrix"] input,
-[data-theme="matrix"] select,
 [data-theme="matrix"] select {
-    background: #010409 !important;
-    border: 1px solid #30363d !important;
-    color: var(--primary-color) !important;
+    background: #1e1e1e !important;
+    border: none !important;
+    border-bottom: 1px solid #555 !important;
+    color: var(--danger-color) !important;
+    /* Color de "String" */
+    padding: 0.5rem 0 !important;
     font-family: var(--font-main) !important;
 }
 
 [data-theme="matrix"] input:focus,
 [data-theme="matrix"] select:focus {
-    border-color: var(--primary-color) !important;
+    border-bottom: 1px solid var(--primary-color) !important;
     outline: none;
 }
 
+/* Paneles planos */
 [data-theme="matrix"] .glass-panel,
 [data-theme="matrix"] .modal-content {
-    background: #0d1117 !important;
+    background: var(--panel-bg) !important;
     border: 1px solid var(--panel-border) !important;
-    color: var(--text-main) !important;
 }
 
-/* Botones estilo [ ACCION ] */
+/* Botones estilo [ EXEC ] */
 [data-theme="matrix"] .btn,
 [data-theme="matrix"] .btn-action,
 [data-theme="matrix"] .tab-btn {
-    background: transparent !important;
-    border: 1px solid var(--panel-border) !important;
+    background: #333 !important;
+    border: 1px solid #444 !important;
     color: var(--text-main) !important;
     text-transform: uppercase;
-    font-size: 0.8rem;
-    letter-spacing: 1px;
-    transition: 0s;
-    /* Sin animaciones suaves en terminal */
+    font-size: 0.75rem;
+    font-weight: bold;
+    margin-right: 2px;
 }
 
 [data-theme="matrix"] .btn:hover,
-[data-theme="matrix"] .tab-btn.active,
-[data-theme="matrix"] .btn-action:hover {
-    background: var(--text-main) !important;
-    color: var(--bg-color) !important;
-    border-color: var(--text-main) !important;
-    font-weight: bold;
+[data-theme="matrix"] .tab-btn.active {
+    background: var(--primary-color) !important;
+    color: #1e1e1e !important;
 }
 
-[data-theme="matrix"] .indicator-card,
+/* Tablas estilo texto */
+[data-theme="matrix"] th {
+    color: var(--primary-color) !important;
+    border-bottom: 1px dashed #444 !important;
+    text-transform: none !important;
+}
+
+[data-theme="matrix"] td {
+    border-bottom: 1px solid #2a2a2a !important;
+    color: var(--text-main);
+}
+
+/* Ocultar elementos decorativos */
+[data-theme="matrix"] .indicator-card {
+    background: #252526 !important;
+    border: 1px solid #333 !important;
+}
+
 [data-theme="matrix"] .b-card {
-    background: transparent !important;
-    border: 1px dashed var(--panel-border) !important;
+    background: #1e1e1e !important;
+    border: 1px solid #333 !important;
+}
+
+/* Ajuste de etiquetas para parecer código */
+[data-theme="matrix"] h3 {
+    color: var(--secondary-color) !important;
+    font-weight: normal;
+}
+
+[data-theme="matrix"] h3::before {
+    content: "function ";
+    color: var(--primary-color);
+}
+
+[data-theme="matrix"] h3::after {
+    content: "() {";
+    color: var(--text-main);
 }
 
 /* --- REGLAS GENERALES --- */

@@ -843,3 +843,67 @@ footer {
         transform: scaleX(1);
     }
 }
+
+/* --- MODO TERMINAL (CLI) --- */
+
+/* Cuando el body tiene la clase 'mode-cli', ocultamos todo lo gráfico */
+body.mode-cli .main-header,
+body.mode-cli .dashboard,
+body.mode-cli .background-animation,
+body.mode-cli footer,
+body.mode-cli .pokemon-walker,
+body.mode-cli .modal {
+    display: none !important;
+}
+
+/* Y mostramos la terminal */
+body.mode-cli #cli-view {
+    display: flex !important;
+}
+
+/* Estilos de la Terminal */
+.cli-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #0d1117;
+    color: #c9d1d9;
+    font-family: 'Roboto Mono', monospace;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    z-index: 9999;
+}
+
+#terminal-output {
+    flex: 1;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    padding-bottom: 10px;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.input-line {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #30363d;
+    padding-top: 10px;
+}
+
+.prompt {
+    color: #58a6ff;
+    margin-right: 10px;
+    font-weight: bold;
+}
+
+#cli-input {
+    background: transparent;
+    border: none;
+    color: #fff;
+    flex: 1;
+    font-family: 'Roboto Mono', monospace;
+    outline: none;
+}

@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Versión de la aplicación (debe coincidir con la del Service Worker)
-    const APP_VERSION = 'v25';
+    const APP_VERSION = 'v27';
 
     // Mostrar versión inmediatamente (antes de cargar datos para asegurar que se vea)
     const versionEl = document.getElementById('app-version-display');
@@ -1090,4 +1090,120 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
         console.error("Error crítico durante el arranque:", err);
     }
+
+    // --- MODO TERMINAL (CLI) ---
+    const initCLI = () => {
+        const cliInput = document.getElementById('cli-input');
+        const cliOutput = document.getElementById('terminal-output');
+
+        // Botón para activar CLI desde la GUI
+        const btnCLI = document.createElement('button');
+        btnCLI.className = 'btn-action';
+        btnCLI.innerHTML = '🖥️';
+        btnCLI.title = 'Modo Terminal';
+        btnCLI.onclick = () => toggleMode('cli');
+
+        const headerActions = document.querySelector('.header-actions');
+        if (headerActions) headerActions.prepend(btnCLI);
+
+        // Función para cambiar de modo
+        const toggleMode = (mode) => {
+            if (mode === 'cli') {
+                document.body.classList.add('mode-cli');
+                cliInput.focus();
+                localStorage.setItem('appMode', 'cli');
+                printLine("--- MODO TERMINAL ACTIVADO ---", "#58a6ff");
+            } else {
+                document.body.classList.remove('mode-cli');
+                localStorage.setItem('appMode', 'gui');
+                renderAll(); // Actualizar GUI por si hubo cambios en CLI
+            }
+        };
+
+        // Restaurar modo guardado
+        if (localStorage.getItem('appMode') === 'cli') {
+            toggleMode('cli');
+        }
+
+        // Utilidad de impresión
+        const printLine = (text, color = '#c9d1d9') => {
+            const div = document.createElement('div');
+            div.style.color = color;
+            div.innerHTML = text;
+            cliOutput.appendChild(div);
+            cliOutput.scrollTop = cliOutput.scrollHeight;
+        };
+
+        // Procesador de Comandos
+        cliInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                const raw = cliInput.value.trim();
+                if (!raw) return;
+
+                printLine(`user@finanzas:~$ ${raw}`, '#8b949e');
+                const parts = raw.split(' ');
+                const cmd = parts[0].toLowerCase();
+                const args = parts.slice(1);
+
+                switch (cmd) {
+                    case 'help':
+                        printLine("Comandos disponibles:");
+                        printLine("  add [inc|exp] [monto] [desc]  - Agregar registro");
+                        printLine("  ls                            - Listar últimos 10");
+                        printLine("  balance                       - Ver totales");
+                        printLine("  clear                         - Limpiar pantalla");
+                        printLine("  gui / exit                    - Volver a modo gráfico");
+                        break;
+
+                    case 'gui':
+                    case 'exit':
+                        toggleMode('gui');
+                        break;
+
+                    case 'clear':
+                        cliOutput.innerHTML = '';
+                        break;
+
+                    case 'balance':
+                        const tInc = incomes.reduce((a, b) => a + Number(b.amount), 0);
+                        const tExp = expenses.reduce((a, b) => a + Number(b.amount), 0);
+                        printLine(`Ingresos: $${formattedCurrency(tInc)}`, '#3fb950');
+                        printLine(`Gastos:   $${formattedCurrency(tExp)}`, '#f85149');
+                        printLine(`Total:    $${formattedCurrency(tInc - tExp)}`, '#d29922');
+                        break;
+
+                    case 'ls':
+                        const all = [...incomes.map(i => ({ ...i, t: 'INC' })), ...expenses.map(e => ({ ...e, t: 'EXP' }))]
+                            .sort((a, b) => b.id - a.id).slice(0, 10);
+                        all.forEach(i => {
+                            const color = i.t === 'INC' ? '#3fb950' : '#f85149';
+                            printLine(`[${i.t}] ${i.date} - $${formattedCurrency(i.amount)} - ${i.desc}`, color);
+                        });
+                        break;
+
+                    case 'add':
+                        if (args.length < 3) { printLine("Error: Uso 'add [inc|exp] [monto] [desc]'", 'red'); break; }
+                        const type = args[0];
+                        const amount = parseInt(args[1]);
+                        const desc = args.slice(2).join(' ');
+                        const newItem = { id: Date.now().toString(), date: formatToCLDate(getTodayString()), amount, desc };
+
+                        if (type === 'inc') {
+                            incomes.push(newItem); localStorage.setItem('myIncomes', JSON.stringify(incomes));
+                            printLine("Ingreso guardado.", '#3fb950');
+                        } else {
+                            newItem.category = 'General'; newItem.paid = false;
+                            expenses.push(newItem); localStorage.setItem('myExpenses', JSON.stringify(expenses));
+                            printLine("Gasto guardado.", '#f85149');
+                        }
+                        break;
+
+                    default:
+                        printLine(`Comando no encontrado: ${cmd}`, 'red');
+                }
+                cliInput.value = '';
+            }
+        });
+    };
+    initCLI();
 });

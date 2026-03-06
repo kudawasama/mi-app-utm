@@ -35,27 +35,22 @@
 [data-theme="matrix"] {
     /* Paleta Modern CLI / Dev Tools (Estilo VS Code / Cloud Shell) */
     --primary-color: #58a6ff;
-    /* Azul brillante */
+    /* Azul comando */
     --secondary-color: #238636;
-    /* Verde botón acción */
-    --bg-color: #0d1117;
-    /* Fondo muy oscuro (GitHub Dark) */
-    --panel-bg: #161b22;
-    /* Paneles ligeramente más claros */
-    --panel-border: #30363d;
-    /* Bordes sutiles grises */
-    --text-main: #c9d1d9;
-    /* Blanco suave */
-    --text-muted: #8b949e;
-    /* Gris comentario */
-    --success-color: #3fb950;
     /* Verde éxito */
+    --bg-color: #0d1117;
+    /* Fondo Terminal */
+    --panel-bg: #0d1117;
+    /* Sin fondo distinto, solo bordes */
+    --panel-border: #30363d;
+    --text-main: #e6edf3;
+    /* Blanco terminal */
+    --text-muted: #8b949e;
+    --success-color: #3fb950;
     --danger-color: #f85149;
-    /* Rojo error */
     --accent-color: #d29922;
-    /* Naranja/Amarillo */
 
-    --font-main: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', monospace;
+    --font-main: 'Consolas', 'Monaco', 'Lucida Console', monospace;
 }
 
 [data-theme="matrix"] .background-animation {
@@ -63,12 +58,13 @@
 }
 
 /* --- REGLAS AGRESIVAS PARA MODO TERMINAL --- */
-/* Forzar bordes cuadrados y eliminar sombras en TODO */
+/* Reset agresivo para look TUI (Text User Interface) */
 [data-theme="matrix"] * {
-    border-radius: 2px !important;
-    /* Leve suavizado, casi cuadrado */
+    border-radius: 0 !important;
     backdrop-filter: none !important;
     box-shadow: none !important;
+    font-family: var(--font-main) !important;
+    text-transform: none;
 }
 
 /* Header estilo consola */
@@ -82,33 +78,82 @@
     -webkit-text-fill-color: var(--text-main) !important;
     color: var(--text-main) !important;
     text-shadow: none;
-    font-weight: 400;
+    font-weight: 700;
+    letter-spacing: -0.5px;
 }
 
 /* Prefijo de terminal para el título */
 [data-theme="matrix"] .brand h1::before {
-    content: ">_ ";
-    color: var(--primary-color);
-    font-weight: bold;
+    content: "~/app $ ";
+    color: var(--success-color);
+    margin-right: 5px;
+}
+
+/* Cursor parpadeante */
+[data-theme="matrix"] .brand h1::after {
+    content: '▋';
+    animation: blink 1s step-end infinite;
+    color: var(--text-muted);
+    margin-left: 5px;
+    font-size: 0.9em;
+}
+
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
 }
 
 /* Inputs y Botones estilo CMD */
 [data-theme="matrix"] input,
 [data-theme="matrix"] select,
-[data-theme="matrix"] .btn,
+[data-theme="matrix"] select {
+    background: #010409 !important;
+    border: 1px solid #30363d !important;
+    color: var(--primary-color) !important;
+    font-family: var(--font-main) !important;
+}
+
+[data-theme="matrix"] input:focus,
+[data-theme="matrix"] select:focus {
+    border-color: var(--primary-color) !important;
+    outline: none;
+}
+
 [data-theme="matrix"] .glass-panel,
-[data-theme="matrix"] .modal-content,
-[data-theme="matrix"] .indicator-card {
+[data-theme="matrix"] .modal-content {
     background: #0d1117 !important;
     border: 1px solid var(--panel-border) !important;
     color: var(--text-main) !important;
 }
 
+/* Botones estilo [ ACCION ] */
+[data-theme="matrix"] .btn,
+[data-theme="matrix"] .btn-action,
+[data-theme="matrix"] .tab-btn {
+    background: transparent !important;
+    border: 1px solid var(--panel-border) !important;
+    color: var(--text-main) !important;
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    letter-spacing: 1px;
+    transition: 0s;
+    /* Sin animaciones suaves en terminal */
+}
+
 [data-theme="matrix"] .btn:hover,
-[data-theme="matrix"] .tab-btn.active {
-    background: var(--panel-border) !important;
-    color: var(--primary-color) !important;
-    border-color: var(--text-muted) !important;
+[data-theme="matrix"] .tab-btn.active,
+[data-theme="matrix"] .btn-action:hover {
+    background: var(--text-main) !important;
+    color: var(--bg-color) !important;
+    border-color: var(--text-main) !important;
+    font-weight: bold;
+}
+
+[data-theme="matrix"] .indicator-card,
+[data-theme="matrix"] .b-card {
+    background: transparent !important;
+    border: 1px dashed var(--panel-border) !important;
 }
 
 /* --- REGLAS GENERALES --- */

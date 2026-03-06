@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Versión de la aplicación (debe coincidir con la del Service Worker)
-    const APP_VERSION = 'v21';
+    const APP_VERSION = 'v22';
 
     // Mostrar versión inmediatamente (antes de cargar datos para asegurar que se vea)
     const versionEl = document.getElementById('app-version-display');
@@ -444,8 +444,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Colores dinámicos según el tema
         const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
-        const colorLine = isMatrix ? '#00ff41' : '#00d2ff';
-        const colorBg = isMatrix ? 'rgba(0, 255, 65, 0.1)' : 'rgba(0,210,255,0.05)';
+        const colorLine = isMatrix ? '#58a6ff' : '#00d2ff'; // Azul Dev vs Cian Glass
+        const colorBg = isMatrix ? 'rgba(88, 166, 255, 0.1)' : 'rgba(0,210,255,0.05)';
 
         utmChart = new Chart(ctx, {
             type: 'line',
@@ -485,7 +485,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Paleta de colores dinámica
         const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
         const colors = isMatrix
-            ? ['#00ff41', '#008f11', '#005c00', '#33ff66', '#00cc33', '#006600', '#ccffcc']
+            ? ['#58a6ff', '#bc8cff', '#3fb950', '#d29922', '#f85149', '#79c0ff', '#d2a8ff'] // Paleta Syntax Highlighting
             : ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5', '#8b5cf6'];
 
         categoryChart = new Chart(ctx, {

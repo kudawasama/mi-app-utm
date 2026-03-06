@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Versión de la aplicación (debe coincidir con la del Service Worker)
-    const APP_VERSION = 'v27';
+    const APP_VERSION = 'v29';
 
     // Mostrar versión inmediatamente (antes de cargar datos para asegurar que se vea)
     const versionEl = document.getElementById('app-version-display');
@@ -1095,6 +1095,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const initCLI = () => {
         const cliInput = document.getElementById('cli-input');
         const cliOutput = document.getElementById('terminal-output');
+        const cliView = document.getElementById('cli-view');
+
+        // Cargar tema guardado o usar default
+        const savedCliTheme = localStorage.getItem('cliTheme') || 'default';
+        cliView.className = `cli-container cli-theme-${savedCliTheme}`;
 
         // Botón para activar CLI desde la GUI
         const btnCLI = document.createElement('button');
@@ -1136,6 +1141,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Procesador de Comandos
         cliInput.addEventListener('keydown', (e) => {
+            // Autocompletado con TAB
+            if (e.key === 'Tab') {
+                e.preventDefault();
+                const val = cliInput.value;
+                const commandsList = ['help', 'ls', 'balance', 'add', 'clear', 'gui', 'exit', 'theme'];
+                const matches = commandsList.filter(c => c.startsWith(val));
+                if (matches.length === 1) {
+                    cliInput.value = matches[0] + ' ';
+                } else if (matches.length > 1) {
+                    printLine(matches.join('   '), 'var(--cli-prompt)');
+                }
+                return;
+            }
+
             if (e.key === 'Enter') {
                 const raw = cliInput.value.trim();
                 if (!raw) return;
@@ -1195,6 +1214,18 @@ document.addEventListener('DOMContentLoaded', () => {
                             newItem.category = 'General'; newItem.paid = false;
                             expenses.push(newItem); localStorage.setItem('myExpenses', JSON.stringify(expenses));
                             printLine("Gasto guardado.", '#f85149');
+                        }
+                        break;
+
+                    case 'theme':
+                        const themeName = args[0];
+                        const validThemes = ['default', 'matrix', 'ubuntu', 'powershell'];
+                        if (validThemes.includes(themeName)) {
+                            cliView.className = `cli-container cli-theme-${themeName}`;
+                            localStorage.setItem('cliTheme', themeName);
+                            printLine(`Tema cambiado a '${themeName}'`, 'var(--cli-prompt)');
+                        } else {
+                            printLine(`Temas disponibles: ${validThemes.join(', ')}`, 'orange');
                         }
                         break;
 

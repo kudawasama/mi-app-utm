@@ -861,6 +861,35 @@ body.mode-cli #cli-view {
     display: flex !important;
 }
 
+/* --- TEMAS DE TERMINAL --- */
+.cli-theme-default {
+    --cli-bg: #0d1117;
+    --cli-text: #c9d1d9;
+    --cli-prompt: #58a6ff;
+    --cli-input: #fff;
+}
+
+.cli-theme-matrix {
+    --cli-bg: #000000;
+    --cli-text: #00ff41;
+    --cli-prompt: #008f11;
+    --cli-input: #00ff41;
+}
+
+.cli-theme-ubuntu {
+    --cli-bg: #300a24;
+    --cli-text: #ffffff;
+    --cli-prompt: #dd4814;
+    --cli-input: #eeeeee;
+}
+
+.cli-theme-powershell {
+    --cli-bg: #012456;
+    --cli-text: #cccccc;
+    --cli-prompt: #f9f1a5;
+    --cli-input: #ffffff;
+}
+
 /* Estilos de la Terminal */
 .cli-container {
     position: fixed;
@@ -868,8 +897,8 @@ body.mode-cli #cli-view {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-color: #0d1117;
-    color: #c9d1d9;
+    background-color: var(--cli-bg, #0d1117);
+    color: var(--cli-text, #c9d1d9);
     font-family: 'Roboto Mono', monospace;
     padding: 1rem;
     display: flex;
@@ -894,7 +923,7 @@ body.mode-cli #cli-view {
 }
 
 .prompt {
-    color: #58a6ff;
+    color: var(--cli-prompt, #58a6ff);
     margin-right: 10px;
     font-weight: bold;
 }
@@ -902,7 +931,7 @@ body.mode-cli #cli-view {
 #cli-input {
     background: transparent;
     border: none;
-    color: #fff;
+    color: var(--cli-input, #fff);
     flex: 1;
     font-family: 'Roboto Mono', monospace;
     outline: none;

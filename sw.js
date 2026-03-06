@@ -1,6 +1,6 @@
 self.addEventListener('install', event => {
     event.waitUntil(
-        caches.open('utm-finanzas-v27').then(cache => {
+        caches.open('utm-finanzas-v29').then(cache => {
             // Allow them down softly if they are not cached, it just falls back to network
             return cache.addAll([
                 './index.html',
@@ -9,6 +9,7 @@ self.addEventListener('install', event => {
                 './manifest.json'
             ]);
         })
+    );
     self.skipWaiting();
 });
 
@@ -18,7 +19,7 @@ self.addEventListener('activate', event => {
         caches.keys().then(cacheNames => {
             return Promise.all(
                 cacheNames.map(cache => {
-                    if (cache !== 'utm-finanzas-v27') {
+                    if (cache !== 'utm-finanzas-v29') {
                         return caches.delete(cache);
                     }
                 })

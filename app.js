@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Versión de la aplicación (debe coincidir con la del Service Worker)
-    const APP_VERSION = 'v32';
+    const APP_VERSION = 'v33';
 
     // Mostrar versión inmediatamente (antes de cargar datos para asegurar que se vea)
     const versionEl = document.getElementById('app-version-display');

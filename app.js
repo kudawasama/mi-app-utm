@@ -343,11 +343,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const res = await fetch(API_URL_BASE);
             const data = await res.json();
 
-            if (data.uf && data.uf.valor) {
+            if (data.uf && data.uf.valor && ufValueEl) {
                 ufValueEl.classList.remove('skeleton-text');
                 ufValueEl.innerText = formattedCurrency(data.uf.valor);
             }
-            if (data.dolar && data.dolar.valor) {
+            if (data.dolar && data.dolar.valor && dolarValueEl) {
                 dolarValueEl.classList.remove('skeleton-text');
                 dolarValueEl.innerText = formattedCurrency(data.dolar.valor);
             }
@@ -393,6 +393,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const curr = allUtmData[index];
         if (!curr) return;
         const val = curr.valor;
+        if (!utmValueEl) return;
         utmValueEl.classList.remove('skeleton-text');
         animateValue(utmValueEl, 0, val, 600);
 

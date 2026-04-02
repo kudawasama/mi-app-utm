@@ -8,7 +8,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // Versión de la aplicación (debe coincidir con la del Service Worker)
-    const APP_VERSION = 'v29';
+    const APP_VERSION = 'v30';
 
     // Mostrar versión inmediatamente (antes de cargar datos para asegurar que se vea)
     const versionEl = document.getElementById('app-version-display');
@@ -34,6 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let allUtmData = []; // Guardará el historial de la UTM
     let utmChart = null; // Instancia del gráfico de UTM
     let categoryChart = null; // Instancia del gráfico circular
+    let lastNetBalance = 0; // Guardar el último balance para animaciones suaves
 
     // Cargar datos desde la memoria del navegador (localStorage)
     // Si no existen, se inicializan como listas vacías []
@@ -52,12 +53,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const utmValueEl = document.getElementById('utm-value');
     const ufValueEl = document.getElementById('uf-value');
     const dolarValueEl = document.getElementById('dolar-value');
-    const calc45El = document.getElementById('calc-45');
-    const trendEl = document.getElementById('trend-indicator');
     const monthSelector = document.getElementById('month-selector');
     const periodSelector = document.getElementById('global-period-selector');
     const periodDisplay = document.getElementById('period-display-text');
-
     const totalIncomeEl = document.getElementById('total-income');
     const totalExpenseEl = document.getElementById('total-expense');
     const totalPendingEl = document.getElementById('total-pending');
@@ -78,29 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const editModal = document.getElementById('edit-modal');
     const formEdit = document.getElementById('form-edit');
 
-    // --- GESTIÓN DE TEMAS (DISEÑO) ---
-    const initTheme = () => {
-        const savedTheme = localStorage.getItem('appTheme') || 'glass';
-        document.body.setAttribute('data-theme', savedTheme);
-
-        // Crear botón de cambio de tema e inyectarlo en el header
-        const themeBtn = document.createElement('button');
-        themeBtn.className = 'btn-action';
-        themeBtn.innerHTML = '💻'; // Icono
-        themeBtn.title = 'Cambiar Diseño (Matrix/Glass)';
-        themeBtn.onclick = () => {
-            const current = document.body.getAttribute('data-theme') || 'glass';
-            const next = current === 'glass' ? 'matrix' : 'glass';
-            document.body.setAttribute('data-theme', next);
-            localStorage.setItem('appTheme', next);
-            // Actualizar gráficos para reflejar nuevos colores
-            renderAll();
-            if (allUtmData.length) renderUtmChart(allUtmData.slice(0, 8).reverse());
-        };
-
-        const headerActions = document.querySelector('.header-actions');
-        if (headerActions) headerActions.prepend(themeBtn);
-    };
+    // Project Aurora: Diseño único unificado.
 
     // --- FUNCIONES DE UTILIDAD ---
 
@@ -418,17 +394,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!curr) return;
         const val = curr.valor;
         utmValueEl.classList.remove('skeleton-text');
-        calc45El.classList.remove('skeleton-text');
         animateValue(utmValueEl, 0, val, 600);
-        animateValue(calc45El, 0, val * 4.5, 700);
 
-        // Calcular tendencia comparando con el mes anterior
-        if (allUtmData[index + 1]) {
-            const diff = val - allUtmData[index + 1].valor;
-            trendEl.innerText = (diff > 0 ? '↑' : '↓') + ' $' + formattedCurrency(Math.abs(diff));
-            trendEl.className = `trend-indicator ${diff > 0 ? 'trend-up' : 'trend-down'}`;
-        }
         renderUtmChart(allUtmData.slice(0, 8).reverse());
+        // Forzamos re-render para actualizar la pensión basada en la UTM seleccionada
+        renderAll();
     };
 
     // --- GENERACIÓN DE GRÁFICOS (Chart.js) ---
@@ -442,10 +412,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const ctx = canvas.getContext('2d');
         if (utmChart) utmChart.destroy();
 
-        // Colores dinámicos según el tema
-        const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
-        const colorLine = isMatrix ? '#4fc1ff' : '#00d2ff'; // Azul VS Code
-        const colorBg = isMatrix ? 'rgba(79, 193, 255, 0.1)' : 'rgba(0,210,255,0.05)';
+        // Colores dinámicos Aurora (Cyan/Purple)
+        const colorLine = '#00f2ff'; 
+        const colorBg = 'rgba(0, 242, 255, 0.05)';
 
         utmChart = new Chart(ctx, {
             type: 'line',
@@ -482,11 +451,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (categoryChart) categoryChart.destroy();
         if (labels.length === 0) return;
 
-        // Paleta de colores dinámica
-        const isMatrix = document.body.getAttribute('data-theme') === 'matrix';
-        const colors = isMatrix
-            ? ['#4fc1ff', '#9cdcfe', '#ce9178', '#dcdcaa', '#6a9955', '#569cd6', '#c586c0'] // Paleta VS Code Dark
-            : ['#00d2ff', '#e879f9', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5', '#8b5cf6'];
+        // Paleta de colores Aurora (Neon)
+        const colors = ['#00f2ff', '#7000ff', '#ff00d4', '#10b981', '#f59e0b', '#ef4444', '#3a7bd5'];
 
         categoryChart = new Chart(ctx, {
             type: 'doughnut',
@@ -605,12 +571,140 @@ document.addEventListener('DOMContentLoaded', () => {
         totalIncomeEl.innerText = renderAmount(tInc);
         totalExpenseEl.innerText = renderAmount(tExp);
         totalPendingEl.innerText = renderAmount(tPend);
-        netBalanceEl.innerText = '$' + formattedCurrency(tInc - tExp);
+
+        const currentNet = tInc - tExp;
+
+        // Si los montos están ocultos, mostrar asteriscos sin animación y ocultar el símbolo $
+        if (hideAmounts) {
+            netBalanceEl.innerText = '*****';
+            if (netBalanceEl.previousElementSibling) netBalanceEl.previousElementSibling.style.display = 'none';
+        } else {
+            if (netBalanceEl.previousElementSibling) netBalanceEl.previousElementSibling.style.display = 'inline';
+            // Si el monto cambió, animar la transición
+            if (currentNet !== lastNetBalance) {
+                animateValue(netBalanceEl, lastNetBalance, currentNet, 800);
+            } else {
+                netBalanceEl.innerText = formattedCurrency(currentNet);
+            }
+        }
+
+        // Actualizar el estado previo para la siguiente renderización
+        lastNetBalance = currentNet;
 
         // Estilo visual del balance neto (Rojo si es negativo)
-        netContainer.style.background = (tInc - tExp) < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';
+        netContainer.style.background = currentNet < 0 ? 'rgba(239, 68, 68, 0.05)' : 'rgba(16, 185, 129, 0.05)';
+        netBalanceEl.style.color = currentNet < 0 ? 'var(--danger-color)' : 'var(--success-color)';
+
+        // --- NUEVOS MÓDULOS AURORA ---
+        renderPensionModule();
+        renderUSDModule();
+        renderDailyAllowance(tInc, tExp);
 
         renderCategoryChart(filteredExpenses);
+    };
+
+    /**
+     * Lógica para el módulo de Pensión de Alimentos (4.5 UTM)
+     */
+    const renderPensionModule = () => {
+        const pAmountEl = document.getElementById('pension-amount');
+        const pStatusEl = document.getElementById('pension-status');
+        const btnPay = document.getElementById('btn-pay-pension');
+        if (!pAmountEl || !utmValueEl) return;
+
+        // Obtener valor UTM actual del display (ya limpio)
+        const utmStr = utmValueEl.innerText.replace(/[^0-9]/g, '');
+        const utmVal = parseInt(utmStr) || 0;
+        const totalPension = Math.round(utmVal * 4.5);
+        
+        pAmountEl.innerText = renderAmount(totalPension);
+
+        // Verificar si ya existe un gasto de este mes para pensión
+        const isPaid = expenses.some(e => 
+            e.desc.toLowerCase().includes('pensión') && 
+            getPeriodFromDate(e.date) === currentPeriod &&
+            e.paid
+        );
+
+        if (isPaid) {
+            pStatusEl.innerText = 'Pagado';
+            pStatusEl.className = 'pension-status paid';
+            btnPay.style.display = 'none';
+        } else {
+            pStatusEl.innerText = 'Pte. Pago';
+            pStatusEl.className = 'pension-status unpaid';
+            btnPay.style.display = 'block';
+            
+            btnPay.onclick = () => {
+                const confirmPay = confirm(`¿Marcar pago de pensión por ${formattedCurrency(totalPension)}?`);
+                if (confirmPay) {
+                    const newExpense = {
+                        id: Date.now(),
+                        date: getTodayString(),
+                        category: 'Hijo / Familia',
+                        desc: 'Pensión Alimenticia (Auto)',
+                        amount: totalPension,
+                        paid: true,
+                        notes: 'Generado automáticamente desde Dashboard'
+                    };
+                    expenses.push(newExpense);
+                    saveData();
+                    renderAll();
+                }
+            };
+        }
+    };
+
+    /**
+     * Lógica para Suscripciones Digitales en USD
+     */
+    const renderUSDModule = () => {
+        const listEl = document.getElementById('usd-subscriptions-list');
+        const totalClpEl = document.getElementById('usd-total-clp');
+        if (!listEl || !dolarValueEl) return;
+
+        const dolarStr = dolarValueEl.innerText.replace(/[^0-9.]/g, '');
+        const dolarVal = parseFloat(dolarStr) || 850; // Fallback razonable
+
+        // Definimos suscripciones base en USD (Esto podría ser configurable luego)
+        const subs = [
+            { name: 'Netflix', usd: 10.99 },
+            { name: 'Spotify', usd: 5.99 },
+            { name: 'Google One', usd: 1.99 }
+        ];
+
+        let totalCLP = 0;
+        listEl.innerHTML = '';
+        
+        subs.forEach(s => {
+            const clp = Math.round(s.usd * dolarVal);
+            totalCLP += clp;
+            const item = document.createElement('div');
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.innerHTML = `<span>${s.name}</span><span style="color:var(--text-muted)">${renderAmount(clp)}</span>`;
+            listEl.appendChild(item);
+        });
+
+        totalClpEl.innerText = renderAmount(totalCLP);
+    };
+
+    /**
+     * Salud Financiera: Gasto diario sugerido
+     */
+    const renderDailyAllowance = (tInc, tExp) => {
+        const allowanceEl = document.getElementById('daily-allowance');
+        if (!allowanceEl) return;
+
+        const today = new Date();
+        const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
+        const remainingDays = lastDay - today.getDate() + 1;
+
+        const balance = tInc - tExp;
+        const daily = balance > 0 ? Math.round(balance / remainingDays) : 0;
+
+        animateValue(allowanceEl, 0, daily, 1000);
+        allowanceEl.style.color = daily > 10000 ? 'var(--success-color)' : (daily > 0 ? 'var(--warning-color)' : 'var(--danger-color)');
     };
 
     // --- LÓGICA DE TAREAS (Agenda) ---
@@ -1072,7 +1166,6 @@ document.addEventListener('DOMContentLoaded', () => {
         // Ejecutar procesos iniciales
         processRecurrents(); // Revisar si hay gastos automáticos que crear
         setupPeriodSelector(); // Crear lista de meses según los datos
-        initTheme(); // Inicializar tema visual
         fetchIndicators(); // Pedir UF/Dólar/UTM a la API
 
         // Inicializar toggle de ocultar montos
@@ -1219,7 +1312,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     case 'theme':
                         const themeName = args[0];
-                        const validThemes = ['default', 'matrix', 'ubuntu', 'powershell'];
+                        const validThemes = ['default', 'ubuntu', 'powershell'];
                         if (validThemes.includes(themeName)) {
                             cliView.className = `cli-container cli-theme-${themeName}`;
                             localStorage.setItem('cliTheme', themeName);

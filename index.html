@@ -11,12 +11,10 @@
     <link rel="manifest" href="manifest.json">
     <title>Mi Panel Financiero</title>
 
-    <!-- Tipografía moderna desde Google Fonts -->
+    <!-- Tipografía Aurora (Outfit y Space Grotesk) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;800&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500;700&display=swap"
-        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
 
     <!-- Estilos de la aplicación -->
     <link rel="stylesheet" href="index.css">
@@ -67,63 +65,14 @@
         <!-- CONTENIDO: PESTAÑA DASHBOARD (Resumen Visual) -->
         <div id="tab-dashboard" class="tab-content active">
             <div class="dashboard-grid">
-
-                <!-- Widget: Indicadores Económicos (UTM, UF, Dólar) -->
-                <section class="widget glass-panel">
+                
+                <!-- BENTO 1: RESUMEN MENSUAL [BIG] -->
+                <section class="widget glass-panel bento-big">
+                    <div class="tech-scan"></div>
                     <div class="widget-header">
-                        <h3>Indicadores Económicos</h3>
-                        <select id="month-selector" class="glass-select-sm">
-                            <option value="">Cargando UTM...</option>
-                        </select>
-                    </div>
-
-                    <div class="indicators-grid">
-                        <div class="indicator-card primary">
-                            <span class="lbl">UTM (Histórica)</span>
-                            <div class="val">
-                                <span class="currency-symbol">$</span>
-                                <span id="utm-value" class="skeleton-text">00.000</span>
-                            </div>
-                            <div class="trend-indicator" id="trend-indicator"></div>
-                        </div>
-
-                        <div class="indicator-card accent">
-                            <span class="lbl">4.5 UTM (Trámites)</span>
-                            <div class="val">
-                                <span class="currency-symbol">$</span>
-                                <span id="calc-45" class="skeleton-text">000.000</span>
-                            </div>
-                        </div>
-
-                        <div class="indicator-card secondary">
-                            <span class="lbl">UF (Hoy)</span>
-                            <div class="val">
-                                <span class="currency-symbol">$</span>
-                                <span id="uf-value" class="skeleton-text">00.000</span>
-                            </div>
-                        </div>
-
-                        <div class="indicator-card secondary">
-                            <span class="lbl">Dólar (Hoy)</span>
-                            <div class="val">
-                                <span class="currency-symbol">$</span>
-                                <span id="dolar-value" class="skeleton-text">0.000</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Gráfico Lineal de UTM -->
-                    <div class="chart-wrapper">
-                        <canvas id="utmChart"></canvas>
-                    </div>
-                </section>
-
-                <!-- Widget: Resumen de Saldos y Gráfico de Categorías -->
-                <section class="widget glass-panel">
-                    <div class="widget-header">
-                        <h3>Resumen Mensual</h3>
+                        <h3>📊 Resumen Mensual</h3>
                         <label class="toggle-amounts-label" title="Ocultar/Mostrar montos">
-                            <span class="toggle-amounts-text">👁 Ocultar montos</span>
+                            <span class="toggle-amounts-text">👁 Privacidad</span>
                             <div class="toggle-switch">
                                 <input type="checkbox" id="toggle-hide-amounts">
                                 <span class="toggle-slider"></span>
@@ -133,31 +82,19 @@
 
                     <div class="summary-visual-grid">
                         <div class="balance-cards-mini">
-                            <div class="b-card income interactive" data-detail="income" title="Ver detalle de ingresos">
-                                <div class="card-info">
-                                    <span>Ingresos</span>
-                                    <h4 id="total-income">$0</h4>
-                                </div>
-                                <span class="arrow-detail">→</span>
+                            <div class="b-card income interactive" data-detail="income">
+                                <span>Ingresos</span>
+                                <h4 id="total-income">$0</h4>
                             </div>
-                            <div class="b-card expense interactive" data-detail="expense" title="Ver detalle de gastos">
-                                <div class="card-info">
-                                    <span>Gastos</span>
-                                    <h4 id="total-expense">$0</h4>
-                                </div>
-                                <span class="arrow-detail">→</span>
+                            <div class="b-card expense interactive" data-detail="expense">
+                                <span>Gastos</span>
+                                <h4 id="total-expense">$0</h4>
                             </div>
-                            <div class="b-card pending interactive" data-detail="pending"
-                                title="Ver detalle de pendientes">
-                                <div class="card-info">
-                                    <span>Por Pagar</span>
-                                    <h4 id="total-pending">$0</h4>
-                                </div>
-                                <span class="arrow-detail">→</span>
+                            <div class="b-card pending interactive" data-detail="pending">
+                                <span>Por Pagar</span>
+                                <h4 id="total-pending">$0</h4>
                             </div>
                         </div>
-
-                        <!-- Gráfico Circular de Gastos -->
                         <div class="category-chart-wrapper">
                             <canvas id="categoryChart"></canvas>
                         </div>
@@ -165,8 +102,72 @@
 
                     <div class="net-balance-dashboard">
                         <span>Balance Neto</span>
-                        <h2 id="net-balance">$0</h2>
+                        <h2 class="val">
+                            <span class="currency-symbol">$</span>
+                            <span id="net-balance">0</span>
+                        </h2>
                     </div>
+                </section>
+
+                <!-- BENTO 2: INDICADORES ECONÓMICOS [MID] -->
+                <section class="widget glass-panel bento-mid">
+                    <div class="widget-header">
+                        <h3>🌐 Indicadores</h3>
+                        <select id="month-selector" class="glass-select-sm">
+                            <option value="">Cargando UTM...</option>
+                        </select>
+                    </div>
+                    <div class="indicators-grid">
+                        <div class="indicator-card">
+                            <span class="label">UTM</span>
+                            <div class="val"><span id="utm-value">0</span></div>
+                        </div>
+                        <div class="indicator-card">
+                            <span class="label">UF</span>
+                            <div class="val"><span id="uf-value">0</span></div>
+                        </div>
+                        <div class="indicator-card">
+                            <span class="label">Dólar</span>
+                            <div class="val"><span id="dolar-value">0</span></div>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper" style="height: 100px;">
+                        <canvas id="utmChart"></canvas>
+                    </div>
+                </section>
+
+                <!-- BENTO 3: PENSIÓN DE ALIMENTOS [SMALL] -->
+                <section class="widget glass-panel pension-card" id="card-pension">
+                    <div class="widget-header">
+                        <h3>👶 Pensión</h3>
+                        <span id="pension-status" class="pension-status unpaid">Pte. Pago</span>
+                    </div>
+                    <div style="text-align: center; margin: 1rem 0;">
+                        <span class="label" style="font-size: 0.8rem; color: var(--text-muted);">4.5 UTM (Mensual)</span>
+                        <h4 id="pension-amount">$0</h4>
+                    </div>
+                    <button id="btn-pay-pension" class="btn-aurora" style="width: 100%; font-size: 0.7rem;">Marcar como Pagado</button>
+                </section>
+
+                <!-- BENTO 4: SUSCRIPCIONES USD [SMALL] -->
+                <section class="widget glass-panel">
+                    <div class="widget-header">
+                        <h3>☁️ Digital USD</h3>
+                    </div>
+                    <div id="usd-subscriptions-list" style="font-size: 0.85rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                        <div style="color: var(--text-muted); text-align: center;">Sin servicios...</div>
+                    </div>
+                    <div style="margin-top: 1rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem; text-align: right;">
+                        <span style="font-size: 0.7rem; color: var(--text-muted);">Total:</span>
+                        <span id="usd-total-clp" style="font-weight: bold; color: var(--accent-cyan);">$0</span>
+                    </div>
+                </section>
+
+                <!-- BENTO 5: SALUD FINANCIERA [SMALL] -->
+                <section class="widget glass-panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                    <span class="label" style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Afinidad Diaria</span>
+                    <h3 id="daily-allowance" style="font-size: 1.5rem; color: var(--success-color); margin: 0.5rem 0;">$0</h3>
+                    <p style="font-size: 0.65rem; color: var(--text-muted);">Gasto sugerido para hoy</p>
                 </section>
             </div>
         </div>

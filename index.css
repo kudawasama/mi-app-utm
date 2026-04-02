@@ -75,14 +75,23 @@ body {
 }
 
 /* --- BENTO GRID LAYOUT --- */
+.tab-content {
+    display: none;
+    width: 100%;
+}
+
+.tab-content.active {
+    display: block;
+}
+
 .dashboard-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: auto;
-    gap: 1.2rem;
+    grid-auto-rows: minmax(160px, auto);
+    gap: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
-    padding: 1.5rem;
+    padding: 2rem 1.5rem;
 }
 
 .bento-big { grid-column: span 2; grid-row: span 2; }
@@ -194,9 +203,27 @@ body {
 }
 
 .indicator-card:first-child { grid-column: span 2; }
+.indicator-card .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; }
+.indicator-card .val { font-family: var(--font-tech); font-size: 1.6rem; color: var(--accent-cyan); text-shadow: 0 0 12px rgba(0, 242, 255, 0.4); }
 
-.indicator-card .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem; }
-.indicator-card .val { font-family: var(--font-tech); font-size: 1.5rem; color: var(--accent-cyan); text-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
+/* Afinidad Diaria (Salud Financiera) Centrada */
+.daily-allowance-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 160px;
+    background: radial-gradient(circle at top right, rgba(16, 185, 129, 0.1), transparent);
+}
+
+#daily-allowance {
+    font-family: var(--font-tech);
+    font-size: 2.2rem;
+    margin: 0.5rem 0;
+    color: var(--success-color);
+    text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+}
 
 /* Pensión Card */
 .pension-card {

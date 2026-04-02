@@ -274,6 +274,113 @@ body {
     margin: 0.4rem 0;
 }
 
+/* --- MODALES AURORA --- */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(15px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+    padding: 1rem;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    width: 100%;
+    max-width: 500px;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), 0 0 30px rgba(117, 53, 114, 0.2);
+    border-radius: 24px;
+    padding: 2rem;
+    position: relative;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.modal-header h3, .modal-header h2 {
+    font-family: var(--font-tech);
+    color: var(--accent-pink);
+    text-shadow: 0 0 10px rgba(255, 0, 127, 0.3);
+}
+
+.close-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 2rem;
+    cursor: pointer;
+    line-height: 1;
+}
+
+/* --- BOTONES Y CONTROLES ADICIONALES --- */
+.btn {
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: var(--font-tech);
+    font-weight: 600;
+    text-transform: uppercase;
+    transition: 0.3s;
+    font-size: 0.75rem;
+}
+
+.btn-primary { 
+    background: linear-gradient(135deg, var(--primary-color), var(--primary-light));
+    color: white;
+}
+
+.btn-danger {
+    background: rgba(255, 62, 62, 0.15);
+    border: 1px solid var(--danger-color);
+    color: var(--danger-color);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.2);
+}
+
+/* Form Styles */
+.add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+input, select {
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 0.6rem 0.8rem;
+    color: white;
+    font-size: 0.85rem;
+    outline: none;
+}
+
+input:focus, select:focus {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+}
+
 /* --- BOTONES Y TABS --- */
 .btn-aurora {
     width: 100%;

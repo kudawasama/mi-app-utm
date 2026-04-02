@@ -1133,7 +1133,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // --- INICIALIZACIÓN (Arranque de la App) ---
-    console.log("Aurora HUD v31 initialized");
+    console.log("Aurora HUD v32 initialized");
     try {
         // Detectar si se abrió desde un acceso directo del móvil (Shortcut)
         const urlParams = new URLSearchParams(window.location.search);

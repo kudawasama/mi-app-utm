@@ -12,7 +12,7 @@
     --bg-dark: #0a0a15;
     --bg-surface: #121225;
     
-    --primary-color: #753572; /* Dark Purple del usuario */
+    --primary-color: #753572;
     --primary-light: #bd4f9a;
     --accent-pink: #ff007f;
     --accent-cyan: #00f2ff;
@@ -52,23 +52,6 @@ body {
         radial-gradient(circle at 90% 90%, rgba(0, 242, 255, 0.05) 0%, transparent 40%);
 }
 
-/* Efecto HUD: Scanlines */
-body::before {
-    content: "";
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.05) 50%), 
-                linear-gradient(90deg, rgba(255, 0, 0, 0.01), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.01));
-    background-size: 100% 4px, 3px 100%;
-    pointer-events: none;
-    z-index: 9999;
-    opacity: 0.3;
-}
-
-/* --- NAVEGACIÓN AURORA --- */
 .main-header {
     background: rgba(10, 10, 21, 0.85);
     backdrop-filter: blur(20px);
@@ -102,7 +85,6 @@ body::before {
     padding: 1.5rem;
 }
 
-/* Clases de Tamaño Bento */
 .bento-big { grid-column: span 2; grid-row: span 2; }
 .bento-mid { grid-column: span 2; }
 .bento-small { grid-column: span 1; }
@@ -122,7 +104,6 @@ body::before {
 .glass-panel:hover {
     transform: translateY(-5px);
     border-color: var(--primary-light);
-    box-shadow: 0 10px 40px rgba(117, 53, 114, 0.25);
 }
 
 /* Decoración Tech en esquinas */
@@ -138,95 +119,166 @@ body::before {
 }
 
 /* --- COMPONENTES ESPECÍFICOS --- */
+.summary-visual-grid {
+    display: grid;
+    grid-template-columns: 1fr 180px;
+    gap: 1.5rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.balance-cards-mini {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.b-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.b-card span { font-size: 0.75rem; color: var(--text-muted); }
+.b-card h4 { font-family: var(--font-tech); font-size: 1rem; }
+
+.category-chart-wrapper {
+    width: 180px;
+    height: 180px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.net-balance-dashboard {
+    text-align: center;
+    padding: 1.2rem;
+    background: rgba(117, 53, 114, 0.08);
+    border-radius: 16px;
+    border: 1px dashed var(--glass-border);
+}
+
+.net-balance-dashboard span {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--text-muted);
+}
+
+.net-balance-dashboard .val {
+    font-size: 2rem;
+    font-family: var(--font-tech);
+    margin-top: 0.5rem;
+}
+
+.indicators-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
 .indicator-card {
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
+    padding: 1rem;
     background: rgba(0, 0, 0, 0.2);
-    border-radius: 18px;
-    padding: 1.2rem;
+    border-radius: 16px;
     border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-.indicator-card .label {
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    color: var(--text-muted);
-}
+.indicator-card:first-child { grid-column: span 2; }
 
-.indicator-card .val {
-    font-family: var(--font-tech);
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--accent-cyan);
-    text-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
-}
+.indicator-card .label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.3rem; }
+.indicator-card .val { font-family: var(--font-tech); font-size: 1.5rem; color: var(--accent-cyan); text-shadow: 0 0 10px rgba(0, 242, 255, 0.3); }
 
-/* Pensión de Alimentos Card */
+/* Pensión Card */
 .pension-card {
     background: linear-gradient(145deg, rgba(117, 53, 114, 0.2), rgba(18, 18, 37, 0.8));
     border-left: 4px solid var(--accent-pink);
 }
 
 .pension-card h4 {
-    font-size: 1.8rem;
-    margin: 0.5rem 0;
+    font-family: var(--font-tech);
+    font-size: 2rem;
     color: var(--accent-pink);
+    text-shadow: 0 0 15px rgba(255, 0, 127, 0.4);
 }
 
 .pension-status {
-    display: inline-block;
-    padding: 2px 10px;
+    padding: 2px 8px;
     border-radius: 20px;
-    font-size: 0.7rem;
-    font-weight: bold;
+    font-size: 0.65rem;
     text-transform: uppercase;
+    font-weight: bold;
 }
-
 .pension-status.unpaid { background: rgba(255, 62, 62, 0.2); color: var(--danger-color); }
 .pension-status.paid { background: rgba(0, 255, 170, 0.2); color: var(--success-color); }
 
-/* --- INTERACCIONES --- */
+/* --- USD & DAILY ALLOWANCE --- */
+#usd-subscriptions-list div {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0.6rem;
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    margin-bottom: 0.4rem;
+    font-size: 0.8rem;
+}
+
+.daily-allowance-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 140px;
+}
+
+#daily-allowance {
+    font-family: var(--font-tech);
+    font-size: 1.8rem;
+    margin: 0.4rem 0;
+}
+
+/* --- BOTONES Y TABS --- */
 .btn-aurora {
+    width: 100%;
     background: linear-gradient(45deg, var(--primary-color), var(--primary-light));
     border: none;
     color: white;
-    padding: 0.8rem 1.5rem;
+    padding: 0.7rem;
     border-radius: 12px;
     font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 1px;
     cursor: pointer;
-    transition: all 0.3s;
-    position: relative;
-    overflow: hidden;
+    transition: 0.3s;
+    text-transform: uppercase;
+    font-size: 0.75rem;
 }
 
 .btn-aurora:hover {
     filter: brightness(1.2);
-    box-shadow: 0 0 20px rgba(189, 79, 154, 0.5);
-    transform: scale(1.02);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(117, 53, 114, 0.4);
 }
 
-/* Sistema de Pestañas */
 .tab-btn {
     font-family: var(--font-tech);
     background: transparent;
     border: none;
     color: var(--text-muted);
-    padding: 0.6rem 1.2rem;
+    padding: 0.5rem 1rem;
     cursor: pointer;
-    position: relative;
     transition: 0.3s;
 }
 
-.tab-btn.active {
-    color: var(--accent-cyan);
-}
-
+.tab-btn.active { color: var(--accent-cyan); position: relative; }
 .tab-btn.active::after {
     content: "";
     position: absolute;
@@ -236,15 +288,9 @@ body::before {
     height: 3px;
     background: var(--accent-cyan);
     box-shadow: 0 0 10px var(--accent-cyan);
-    border-radius: 10px;
 }
 
-/* Animaciones */
-@keyframes aurora-pulse {
-    0% { opacity: 0.5; }
-    100% { opacity: 0.8; }
-}
-
+/* Scanline animation */
 .tech-scan {
     position: absolute;
     top: 0;
@@ -261,50 +307,20 @@ body::before {
     100% { transform: translateY(100%); }
 }
 
-/* --- TABLAS HUD --- */
-.hud-table {
-    width: 100%;
-    border-collapse: separate;
-    border-spacing: 0 8px;
-}
-
-.hud-table th {
-    font-family: var(--font-tech);
-    color: var(--primary-light);
-    text-transform: uppercase;
-    font-size: 0.7rem;
-    padding: 0.5rem 1rem;
-    text-align: left;
-}
-
-.hud-table tr {
-    background: rgba(255, 255, 255, 0.02);
-    transition: 0.2s;
-}
-
-.hud-table tr:hover {
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.hud-table td {
-    padding: 1rem;
-}
-
+/* --- TABLAS --- */
+.hud-table { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+.hud-table th { font-family: var(--font-tech); color: var(--primary-light); text-transform: uppercase; font-size: 0.7rem; padding: 0.5rem 1rem; text-align: left; }
+.hud-table tr { background: rgba(255, 255, 255, 0.02); transition: 0.2s; }
+.hud-table tr:hover { background: rgba(255, 255, 255, 0.05); }
+.hud-table td { padding: 1rem; font-size: 0.9rem; }
 .hud-table tr td:first-child { border-radius: 12px 0 0 12px; }
 .hud-table tr td:last-child { border-radius: 0 12px 12px 0; }
 
 /* Responsive */
-@media (max-width: 1000px) {
-    .dashboard-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
+@media (max-width: 1000px) { .dashboard-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 600px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-    .bento-big, .bento-mid, .bento-small {
-        grid-column: span 1;
-    }
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .bento-big, .bento-mid, .bento-small { grid-column: span 1; }
+    .summary-visual-grid { grid-template-columns: 1fr; }
+    .category-chart-wrapper { width: 100%; height: 200px; }
 }
